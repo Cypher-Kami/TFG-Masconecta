@@ -5,11 +5,13 @@ const jwt = require('jsonwebtoken');
 const fileUpload = require('express-fileupload');
 const cloudinary = require('cloudinary').v2;
 const connection = require('../db');
+const dotenv = require('dotenv');
+dotenv.config();
 
 cloudinary.config({
-  cloud_name: 'dbfuxhzss',
-  api_key: '722694822355158',
-  api_secret: 'NUNSBuPDPB0-NEmZiYj9TIDGmyg',
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
 });
 
 router.use(fileUpload());
@@ -25,7 +27,6 @@ router.post('/login', async (req, res) => {
     const { Email, Contrasena, Recordarme } = req.body;
     try {
       // Verificar si el usuario existe en la base de datos
-      console.log(Email, Contrasena, Recordarme);
       const usuario = await new Promise((resolve, reject) => {
         connection.query(
           'SELECT * FROM Usuario WHERE Email = ?',
@@ -50,8 +51,8 @@ router.post('/login', async (req, res) => {
   
       // Generar un token de autenticación
       const token = jwt.sign({ UserID: usuario.ID }, 'mi_secreto_secreto', { expiresIn: '12h' });
-  
-      res.status(200).json({ message: 'Inicio de sesión exitoso.', token });
+      
+      res.status(200).json({ message: 'Inicio de sesión exitoso.', token, userID: usuario.ID });
     } catch (error) {
       res.status(500).json({ error: 'Error al iniciar sesión.' });
     }
@@ -86,7 +87,6 @@ router.post('/register', async (req, res) => {
 
     // Insertar el nuevo usuario en la base de datos
     await new Promise((resolve, reject) => {
-      console.log(Mote, hashedContraseña, Email, fotoUrl, Gustos);
       connection.query(
         'INSERT INTO Usuario (Mote, Contrasena, Email, Foto, Gustos) VALUES (?, ?, ?, ?, ?)',
         [Mote, hashedContraseña, Email, fotoUrl, Gustos],
@@ -101,6 +101,7 @@ router.post('/register', async (req, res) => {
     res.status(500).json({ error: 'Error al registrar el usuario ' + error });
   }
 });
+
 
 router.post('/forgotpassword', async (req, res) => {
   

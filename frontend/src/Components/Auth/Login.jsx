@@ -8,6 +8,7 @@ import RegisterModal from './RegisterModal';
 import { ToastContainer, toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import { useUserContext } from '../../Usercontext';
 import Logo from '../../Assets/Icono_masconecta.svg';
 
 function Login() {
@@ -17,6 +18,7 @@ function Login() {
   const handleShow = () => setShowModal(true);
 
   const navigate = useNavigate();
+  const { dispatch } = useUserContext();
 
   const handleSubmit = async (values) => {
     try {
@@ -25,6 +27,15 @@ function Login() {
         toast.success('Inicio de sesión exitoso');
         const token = response.data.token;
         values.Recordarme && localStorage.setItem('authToken', token);
+        dispatch({
+          type: 'SET_USER',
+          payload: {
+            id: response.data.userID,
+            mote: values.Mote,
+            contraseña: values.Contrasena,
+          },
+        });
+
         navigate('/feed');
       }else {
         toast.error('No se pudo iniciar sesión');

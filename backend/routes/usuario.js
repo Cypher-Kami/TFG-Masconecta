@@ -22,16 +22,48 @@ router.get('/', async (req, res) => {
 
 // Ruta para obtener un usuario por su ID
 router.get('/:id', async (req, res) => {
-  const { id } = req.params;
-
+  const userId = req.params.id;
   try {
-    // Lógica para obtener un usuario por su ID desde la base de datos...
-    res.status(200).json({ message: `Usuario con ID ${id} obtenido exitosamente.` });
+    const results = await new Promise((resolve, reject) => {
+      connection.query(
+        'SELECT * FROM Usuario WHERE ID = ?',
+        [userId],
+        (error, results) => {
+          if (error) reject(error);
+          resolve(results);
+        }
+      );
+    });
+    
+    if (results.length > 0) {
+      res.status(200).json(results[0]);
+    } else {
+      res.status(404).json({ error: `Usuario con ID ${userId} no encontrado.` });
+    }
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener el usuario.' });
   }
 });
+router.put('/editar-perfil/:userId', async (req, res) => {
+  const userId = req.params.userId;
+  const { Mote, Gustos, Foto } = req.body;
 
-// Resto de las rutas relacionadas con usuarios...
+  try {
+    await new Promise((resolve, reject) => {
+      connection.query(
+        'UPDATE Usuario SET Mote = ?, Gustos = ?, Foto = ? WHERE ID = ?',
+        [Mote, Gustos, Foto, userId],
+        (error, results) => {
+          if (error) reject(error);
+          resolve(results);
+        }
+      );
+    });
+
+    res.status(200).json({ message: 'Perfil actualizado exitosamente.' });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al actualizar el perfil.' });
+  }
+});
 
 module.exports = router;

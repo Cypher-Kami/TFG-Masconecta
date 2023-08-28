@@ -1,8 +1,10 @@
 import React from 'react';
+import { useUserContext } from '../../Usercontext';
 import { Link, useNavigate } from 'react-router-dom';
 
 function NavFeed() {
     const navigate = useNavigate();
+    const { userState } = useUserContext();
 
     const handleLogout = () => {
         localStorage.getItem('authToken') && localStorage.removeItem('authToken');
@@ -21,7 +23,7 @@ function NavFeed() {
                     <a class="nav-link active" aria-current="page" href="#">Home</a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">Perfil</a>
+                    <Link to={`/editar-perfil/${userState.id}`} className="nav-link">Editar Perfil</Link>
                 </li>
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
