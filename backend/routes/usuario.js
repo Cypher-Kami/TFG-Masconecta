@@ -46,20 +46,21 @@ router.get('/:id', async (req, res) => {
 });
 router.put('/editar-perfil/:userId', async (req, res) => {
   const userId = req.params.userId;
-  const { Mote, Gustos, Foto } = req.body;
-
+  const { Mote, Email, Gustos } = req.body;
+  console.log(Mote, Email, Gustos);
+  let Gusto = Gustos.join(",");
+  console.log(Gusto);
   try {
     await new Promise((resolve, reject) => {
       connection.query(
-        'UPDATE Usuario SET Mote = ?, Gustos = ?, Foto = ? WHERE ID = ?',
-        [Mote, Gustos, Foto, userId],
+        'UPDATE Usuario SET Mote = ?, Gustos = ?, Email = ? WHERE ID = ?',
+        [Mote, Gusto, Email, userId],
         (error, results) => {
           if (error) reject(error);
           resolve(results);
         }
       );
     });
-
     res.status(200).json({ message: 'Perfil actualizado exitosamente.' });
   } catch (error) {
     res.status(500).json({ error: 'Error al actualizar el perfil.' });

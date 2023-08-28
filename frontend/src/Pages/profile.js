@@ -28,6 +28,7 @@ function Profile() {
     axios.get(`http://localhost:3001/usuario/${id}`)
       .then(response => {
         const userData = response.data;
+        userData.Gustos = userData.Gustos.split(",");
         setInitialValues({
           Mote: userData.Mote,
           Email: userData.Email,
@@ -40,23 +41,18 @@ function Profile() {
   }, [id]);
 
   const handleSubmit = async (values) => {
-    console.log(values);
-    console.log(userState);
-    const formData = new FormData();
+    let formData = new FormData();
     formData.append('Mote', values.Mote);
+    console.log(formData);
+    console.log(values.Mote);
     formData.append('Email', values.Email);
-    formData.append('Contrasena', values.Contrasena);
-    formData.append('Foto', values.Foto); 
-    formData.append('Gustos', (values.Gustos).join(","));
-
+    //formData.append('Contrasena', values.Contrasena);
+    //formData.append('Foto', values.Foto); 
+    formData.append('Gustos', values.Gustos);
+    console.log(formData);
     try {
-      const response = await axios.put(`http://localhost:3001/usuario/editar-perfil/${id}`, formData, {
-        headers: {
-          'Content-Type': 'multipart/form-data'
-        }
-      });
-
-      if (response.status === 200) {
+      const response = await axios.put(`http://localhost:3001/usuario/editar-perfil/${id}`, values);
+      if (response.status >= 200 && response.status < 300) {
         toast.success('Perfil actualizado exitosamente.');
         dispatch({
           type: 'SET_USER',
@@ -68,7 +64,7 @@ function Profile() {
         });
       }
     } catch (error) {
-      console.error('Error al actualizar el perfil:', error);
+      toast.error('Error al actualizar el perfil:', error);
     }
   };
 
@@ -85,6 +81,7 @@ function Profile() {
       <NavFeed />
       <div className='container login-container mt-5 p-5 py-5 rounded-4'>
       <Formik
+            enableReinitialize={true}
             initialValues={initialValues}
             validationSchema={validationSchema}
             onSubmit={(handleSubmit)}
@@ -98,8 +95,8 @@ function Profile() {
                 className="form-control mt-1 inputs"
                 placeholder="Mote"
                 name="Mote"
-                value={initialValues.Mote}
-                readOnly={false}
+                value={values.Mote}
+                onChange={(e) => setFieldValue("Mote", e.target.value)}
               />
               <ErrorMessage name="Mote" component="div" className="error-message" />
             </div>
@@ -109,7 +106,8 @@ function Profile() {
                 className="form-control mt-1 inputs"
                 placeholder="Email"
                 name="Email"
-                value={initialValues.Email}
+                value={values.Email}
+                onChange={(e) => setFieldValue("Email", e.target.value)}
               />
               <ErrorMessage name="Email" component="div" className="error-message" />
             </div>
@@ -122,6 +120,7 @@ function Profile() {
                 isSearchable
                 placeholder="Gustos"
                 name="Gustos"
+                value={values.Gustos.map(gusto => ({ value: gusto, label: gusto }))}
               />
               <ErrorMessage name="Gustos" component="div" className="error-message" />
             </div>
