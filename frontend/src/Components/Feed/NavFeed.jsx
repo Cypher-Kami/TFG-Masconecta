@@ -36,14 +36,14 @@ function NavFeed() {
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#">
-                    <img src={MsgIcon} width="16px" height="16px" className='mx-3' />
-                    Mensajes
+                    <img src={NotifIcon} width="16px" height="16px" className='mx-3' />
+                    Notificaciones
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#">
-                    <img src={NotifIcon} width="16px" height="16px" className='mx-3' />
-                    Notificaciones
+                    <img src={MsgIcon} width="16px" height="16px" className='mx-3' />
+                    Mensajes
                 </a>
             </li>
             <li className="nav-item">

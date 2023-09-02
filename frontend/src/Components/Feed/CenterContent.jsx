@@ -5,6 +5,8 @@ import { useUserContext } from '../../Usercontext';
 import VideoIcon from '../../Assets/iconos/Crear publicacion/Video.svg';
 import ImagenIcon from '../../Assets/iconos/Crear publicacion/Imagen.svg';
 import EventoIcon from '../../Assets/iconos/Crear publicacion/Evento.svg';
+import Img2 from '../../Assets/fotos_mascotas/perro-1.png';
+import PerroFoto from '../../Assets/fotos_mascotas/perro-9.png';
 
 function CenterContent() {
     const { userState, dispatch } = useUserContext();
@@ -52,7 +54,7 @@ function CenterContent() {
             <div className='row mt-4'>
                 <div className='col border rounded-3'>
                     <div className='row mb-2'>
-                        <div className='col-2 mt-2'>
+                        <div className='col-2 mt-2 d-flex justify-content-end'>
                             <img src={values.Foto} alt="Profile" height="90px" width="90px" className="rounded-circle" />
                         </div>
                         <div className='col-10 d-flex align-items-center'>
@@ -61,12 +63,7 @@ function CenterContent() {
                     </div>
                     <form>
                         <div className='row'>
-
-                            <div className="col-12 form-group my-4">
-                                <div className="input-group">
-                                    <input className='inputs ' type="text" placeholder='¿Que hace tú mascota hoy?' />
-                                </div>
-                            </div>
+                            <input className='inputs px-2 my-2' type="text" placeholder='¿Que hace tú mascota hoy?' />
                         </div>
                         <div className='row'>
                             <div className='col-9'>
@@ -94,10 +91,63 @@ function CenterContent() {
             </div>
             <div className='row mt-4'>
                 <div className='col'>
-                    <Publicacion />
-                    soy una cambio
+                    
                 </div>
             </div>
+            <div className='row mt-2'>
+                <div className='col d-flex justify-content-start'>
+                    <img
+                        src={Img2}
+                        alt="Imagen 2"
+                        className="rounded-circle me-2"
+                        width="50"
+                        height="50"
+                    />
+                    <h3>{values.Mote}</h3>
+                    <img
+                        src={Img2}
+                        alt="Imagen 2"
+                        className="rounded-circle me-2"
+                        width="50"
+                        height="50"
+                    />
+                    <img
+                        src={Img2}
+                        alt="Imagen 2"
+                        className="rounded-circle me-2"
+                        width="50"
+                        height="50"
+                    />
+                </div>
+                <div className='col d-flex justify-content-end'>
+                    <button type='button' className='btn btn-outline-info px-4 rounded-pill'>
+                        Seguir
+                    </button>
+                </div>
+            </div>
+            <div className='row'>
+                <img src={PerroFoto} height="200px" className='rounded-4' />
+            </div>
+            <div className='row'>
+                <div className='col d-flex justify-content-start'>
+                    Descripcion
+                </div>
+                <div className='col d-flex justify-content-end'>
+                    <button type="button" className='btn btn-light'>
+                        <img src={ImagenIcon} width="16px" height="16px" className='mx-1' />
+                        Foto
+                    </button>
+                    <button type="button" className='btn btn-light mx-2'>
+                        <img src={VideoIcon} width="16px" height="16px" className='mx-1' />
+                        Video
+                    </button>
+                    <button type="button" className='btn btn-light'>
+                        <img src={EventoIcon} width="16px" height="16px" className='mx-1' />
+                        Evento
+                    </button>
+                </div>
+            </div>
+            <hr />
         </div>
     </>
   )
