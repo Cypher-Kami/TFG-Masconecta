@@ -7,6 +7,7 @@ export const UserProvider = ({ children }) => {
     id: null,
     mote: '',
     email: '',
+    currentComponent: 'CenterContent',
   };
 
   const userReducer = (state, action) => {
@@ -20,6 +21,11 @@ export const UserProvider = ({ children }) => {
         };
       case 'CLEAR_USER':
         return initialState;
+      case 'SET_CURRENT_COMPONENT':
+        return {
+          ...state,
+          currentComponent: action.payload,
+        };
       default:
         return state;
     }

@@ -4,14 +4,25 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fileUpload = require('express-fileupload');
 const cloudinary = require('cloudinary').v2;
+const nodemailer = require('nodemailer');
 const connection = require('../db');
 const dotenv = require('dotenv');
 dotenv.config();
 
+const transporter = nodemailer.createTransport({
+  host: "smtp.gmail.com",
+  port: 465,
+  secure: true,
+  auth: {
+    user: 'bitarveronica@gmail.com',
+    pass: 'gumdoeeatejydypw'
+  }
+});
+
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  cloud_name: 'dbfuxhzss', 
+  api_key: '722694822355158',
+  api_secret: 'NUNSBuPDPB0-NEmZiYj9TIDGmyg'
 });
 
 router.use(fileUpload());
@@ -46,7 +57,7 @@ router.post('/login', async (req, res) => {
       const contraseñaValida = await bcrypt.compare(Contrasena, usuario.Contrasena);
   
       if (!contraseñaValida) {
-        return res.status(401).json({ error: 'La contraseña está incorrecta.' });
+        return res.status(401).json({ error: 'La contraseña es incorrecta.' });
       }
   
       // Generar un token de autenticación
@@ -104,7 +115,83 @@ router.post('/register', async (req, res) => {
 
 
 router.post('/forgotpassword', async (req, res) => {
-  
+  const { Email } = req.body;
+  try {
+    const usuario = await new Promise((resolve, reject) => {
+      connection.query(
+        'SELECT * FROM Usuario WHERE Email = ?',
+        [Email],
+        (error, results) => {
+          if (error) reject(error);
+          resolve(results[0]);
+        }
+      );
+    });
+
+    if (!usuario) {
+      return res.status(404).json({ message: 'Usuario no encontrado, registrate' });
+    }
+
+    const token = jwt.sign({ userId: usuario.ID }, 'tu_secreto', { expiresIn: '1h' });
+
+    const resetUrl = `http://localhost:3000/resetpassword/${token}`;
+
+    await transporter.sendMail({
+      from: '"masconecta - recuperar contraseña 🐕🐾" <bitarveronica@gmail.com>',
+      to: Email,
+      subject: "Recuperar contraseña",
+      html: `
+        <div class="container">
+          <div class="header">
+            <img className="" src="https://res.cloudinary.com/dbfuxhzss/image/upload/v1692545061/cbkyjcpmj0d5oj1xuddz.jpg" height="50px" width="350px" />
+            <h2>Restablecimiento de Contraseña</h2>
+            <p>¡Hola! <b>${usuario.Mote}</b> 🐾</p>
+            <p>Has solicitado restablecer tu contraseña.</p>
+          </div>
+          <p><b>Por favor, haz clic en el siguiente enlace o pégalo en tu navegador:</b></p>
+          <p><a class="link-button" href="${resetUrl}">Restablecer mi contraseña</a></p>
+          <p>Si no solicitaste este restablecimiento, puedes ignorar este mensaje.</p>
+          <p>¡Gracias!</p>
+        </div>
+      `
+    });
+
+    res.status(200).json({ message: 'Correo enviado exitosamente' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Error al enviar el correo' });
+  }
+});
+
+router.post('/resetpassword/:token', async (req, res) => {
+  const { token } = req.params;
+  const { Contrasena } = req.body;
+
+  try {
+    // Verificar y decodificar el token
+    const decodedToken = jwt.verify(token, 'tu_secreto');
+
+    // Hashear la nueva contraseña antes de almacenarla
+    const hashedPassword = await bcrypt.hash(Contrasena, 10);
+
+    // Actualizar la contraseña del usuario en la base de datos
+    const updateQuery = 'UPDATE Usuario SET Contrasena = ? WHERE ID = ?';
+
+    await new Promise((resolve, reject) => {
+      connection.query(updateQuery, [hashedPassword, decodedToken.userId], (error, results) => {
+        if (error) reject(error);
+        resolve(results);
+      });
+    });
+
+    res.status(200).json({ message: 'Contraseña restablecida exitosamente' });
+  } catch (error) {
+    if ( res.status >= 400 && res.status < 500 ) {
+      res.status(401).json({ message: 'El enlace de restablecimiento es inválido o ha expirado' });
+    }else {
+      res.status(500).json({ message: 'Error al restablecer la contraseña' });
+    }
+  }
 });
 
 module.exports = router;

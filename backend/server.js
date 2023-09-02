@@ -8,7 +8,7 @@ app.use(express.json());
 // Importar las rutas
 const usuarioRouter = require('./routes/usuario');
 const eventoRouter = require('./routes/evento');;
-const authRouter = require('./routes/authRouter');
+const authRouter = require('./routes/auth');
 
 // Usar las rutas
 app.use('/usuario', usuarioRouter);

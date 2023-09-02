@@ -1,16 +1,17 @@
 import React from 'react';
-import ReactDOM from 'react-dom/client';
+import ReactDOM from 'react-dom';
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { UserProvider } from './Usercontext';
 import AuthContainer from './Components/Auth/AuthContainer';
 import FeedContainer from './Pages/feedContainer';
-import ForgotPass from './Pages/forgotPassword';
-import Profile from './Pages/profile';
+import ResetPassword from './Pages/resetPass';
+import ForgotPass from './Components/Auth/ForgotPass';
+import Profile from './Components/Feed/Profile';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './Styles/index.css';
 import './Styles/fontawesome.css';
 
-export default function Index() {
+function Index() {
   const token = localStorage.getItem('authToken');
   return (
     <UserProvider>
@@ -20,11 +21,11 @@ export default function Index() {
           <Route path="/feed" element={<FeedContainer />} />
           <Route path="/editar-perfil/:id" element={<Profile />} />
           <Route path="/forgotpassword" element={<ForgotPass />} />
+          <Route path="/resetpassword/:token" element={<ResetPassword />} />
         </Routes>
       </BrowserRouter>
     </UserProvider>
   );
 }
 
-const root = ReactDOM.createRoot(document.getElementById('root'));
-root.render(<Index />);
+ReactDOM.render(<Index />, document.getElementById('root'));

@@ -1,24 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import NavFeed from '../Components/Feed/NavFeed';
+import RightContent from '../Components/Feed/RightContent';
+import CenterContent from '../Components/Feed/CenterContent';
+import Profile from '../Components/Feed/Profile';
+import Banner from '../Assets/LogoPrincipal.svg'
+import { useUserContext } from '../Usercontext';
 import 'react-toastify/dist/ReactToastify.css';
 
 function FeedContainer() {
+  const navigate = useNavigate();
+  const { userState, dispatch } = useUserContext();
+
+  const handleEditProfileClick = () => {
+    dispatch({ type: 'SET_CURRENT_COMPONENT', payload: 'Profile' });
+  };
 
   return (
-    <div>
-      <NavFeed  />
-      <h1>Feed</h1>
-      <div className='container-fluid mt-4 login-container'>
-        <div className='row d-flex align-items-center '>
-          <div className='col-md-3'>
-            col 1
-          </div>
-          <div className='col-md-6'>
-            col 2
-          </div>
-          <div className='col-md-3'>
-            col 3
-          </div>
+    <div className='container-fluid pt-3 login-container'>
+      <div className='row'>
+        <div className='col-md-2'>
+          <img src={Banner} width="220px" height="50px" className='mb-1' />
+          <NavFeed />
+        </div>
+        <div className='col-md-7'>
+          {userState.currentComponent === 'CenterContent' ? (
+              <CenterContent />
+            ) : (
+              <Profile />
+            )}
+        </div>
+        <div className='col-md-3'>
+          <RightContent />
         </div>
       </div>
     </div>

@@ -1,6 +1,27 @@
 const express = require('express');
 const router = express.Router();
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const fileUpload = require('express-fileupload');
+const cloudinary = require('cloudinary').v2;
 const connection = require('../db');
+const dotenv = require('dotenv');
+dotenv.config();
+
+cloudinary.config({
+  cloud_name: 'dbfuxhzss', 
+  api_key: '722694822355158',
+  api_secret: 'NUNSBuPDPB0-NEmZiYj9TIDGmyg'
+});
+
+router.use(fileUpload());
+
+async function handleUpload(file) {
+  const res = await cloudinary.uploader.upload(file, {
+    resource_type: "auto",
+  });
+  return res;
+}
 
 // Ruta para obtener todos los usuarios
 router.get('/', async (req, res) => {
@@ -44,17 +65,38 @@ router.get('/:id', async (req, res) => {
     res.status(500).json({ error: 'Error al obtener el usuario.' });
   }
 });
+
 router.put('/editar-perfil/:userId', async (req, res) => {
   const userId = req.params.userId;
-  const { Mote, Email, Gustos } = req.body;
-  console.log(Mote, Email, Gustos);
-  let Gusto = Gustos.join(",");
-  console.log(Gusto);
+  const { Mote, Email, Gustos, Nombre, Apellido, Descripcion, Contrasena } = req.body;
+  const Foto = req.files && req.files.Foto;
+  console.log(Mote, Email, Gustos, Nombre, Apellido, Descripcion, Contrasena, Foto);
+  let updateFields = {
+    Mote,
+    Gustos,
+    Email,
+    Nombre,
+    Apellido,
+    Descripcion,
+  };
+
+  if (Contrasena) {
+    const hashedContrasena = await bcrypt.hash(Contrasena, 10);
+    updateFields.Contrasena = hashedContrasena;
+  }
+
+  if (Foto) {
+    const b64 = Buffer.from(Foto.data).toString("base64");
+    let dataURI = "data:" + Foto.mimetype + ";base64," + b64;
+    const uploadResult = await handleUpload(dataURI);
+    updateFields.Foto = uploadResult.secure_url;
+  }
+  
   try {
     await new Promise((resolve, reject) => {
       connection.query(
-        'UPDATE Usuario SET Mote = ?, Gustos = ?, Email = ? WHERE ID = ?',
-        [Mote, Gusto, Email, userId],
+        'UPDATE Usuario SET ? WHERE ID = ?',
+        [updateFields, userId],
         (error, results) => {
           if (error) reject(error);
           resolve(results);

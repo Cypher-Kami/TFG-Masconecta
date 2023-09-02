@@ -7,7 +7,10 @@ import { ToastContainer, toast } from 'react-toastify';
 import { Modal, Button } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowLeft, faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+import OverlayTrigger from 'react-bootstrap/OverlayTrigger';
+import Popover from 'react-bootstrap/Popover';
 import Logo from '../../Assets/Icono_masconecta.svg';
+import termsCondiciones from '../../Misc/terminosCondiciones';
 import 'react-toastify/dist/ReactToastify.css';
 
 const options = [
@@ -16,7 +19,16 @@ const options = [
   { value: 'Conejos', label: 'Conejos' },
 ];
 
+const popover = (
+  <Popover id="popover-right">
+    <Popover.Title as="h3">Términos y Condiciones</Popover.Title>
+    <Popover.Content>{termsCondiciones}</Popover.Content>
+  </Popover>
+);
+
 function RegisterModal({ showModal, handleClose }) {
+  const [popoverVisible, setPopoverVisible] = useState(false);
+
   const handleSubmit = async (values) => {
     const formData = new FormData();
     formData.append('Mote', values.Mote);
@@ -41,7 +53,7 @@ function RegisterModal({ showModal, handleClose }) {
   const validationSchema = Yup.object({
     Mote: Yup.string().required('Campo requerido'),
     Email: Yup.string().email('Correo electrónico inválido').required('Campo requerido'),
-    Contrasena: Yup.string().required('Campo requerido'),
+    Contrasena: Yup.string().required('Campo requerido').min(8, "La contraseña debe tener minimo 8 caracteres"),
     //Foto: Yup.mixed().required('Campo requerido'),
     Gustos: Yup.array().required('Campo requerido'),
     Terminos: Yup.boolean().oneOf([true], 'Debes aceptar los términos y condiciones').required('Campo requerido'),
@@ -159,7 +171,24 @@ function RegisterModal({ showModal, handleClose }) {
                       <div className="form-group mt-3">
                         <label className="form-check-label">
                           <Field type="checkbox" name="Terminos" className="form-check-input inputs" />
-                          <a href="#" className="mt-1 mx-2">Acepto los términos y condiciones.</a>
+                          <OverlayTrigger
+                            trigger="click"
+                            placement="right" 
+                            overlay={popover}
+                            show={popoverVisible}
+                            onHide={() => setPopoverVisible(false)}
+                          >
+                            <a
+                              href="#"
+                              className="mt-1 mx-2"
+                              onClick={(e) => {
+                                e.preventDefault();
+                                setPopoverVisible(!popoverVisible);
+                              }}
+                            >
+                              Acepto los términos y condiciones.
+                            </a>
+                          </OverlayTrigger>
                         </label>
                         <ErrorMessage name="Terminos" component="div" className="error-message" />
                       </div>

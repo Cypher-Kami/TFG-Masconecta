@@ -5,6 +5,7 @@ import * as Yup from 'yup';
 import 'react-toastify/dist/ReactToastify.css';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
 import RegisterModal from './RegisterModal';
+import ForgotModal from './ForgotPass';
 import { ToastContainer, toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
@@ -13,9 +14,14 @@ import Logo from '../../Assets/Icono_masconecta.svg';
 
 function Login() {
   const [showPassword, setShowPassword] = useState(false);
-  const [showModal, setShowModal] = useState(false);
-  const handleClose = () => setShowModal(false);
-  const handleShow = () => setShowModal(true);
+  const [showForgotModal, setShowForgotModal] = useState(false); 
+  const [showRegisterModal, setShowRegisterModal] = useState(false);
+
+  const handleCloseForgot = () => setShowForgotModal(false);
+  const handleShowForgot = () => setShowForgotModal(true);
+
+  const handleCloseRegister = () => setShowRegisterModal(false);
+  const handleShowRegister = () => setShowRegisterModal(true);
 
   const navigate = useNavigate();
   const { dispatch } = useUserContext();
@@ -109,14 +115,15 @@ function Login() {
                   </label>
                 </div>
                 <p className="mt-3">
-                  ¿Has olvidado tu <a href="#">contraseña?</a>
+                  ¿Has olvidado tu <a href="#" onClick={handleShowForgot}>contraseña?</a>
+                  <ForgotModal showModal={showForgotModal} handleClose={handleCloseForgot} />
                 </p>
               </div>
               <hr className="mt-3"/>
               <div className="d-flex align-items-center">
                 <p className="mb-0">¿Sin cuenta aún? </p>
-                <b><a href="#" className="ms-2" onClick={handleShow}>Registrate</a></b>
-                <RegisterModal showModal={showModal} handleClose={handleClose} />
+                <b><a href="#" className="ms-2" onClick={handleShowRegister}>Registrate</a></b>
+                <RegisterModal showModal={showRegisterModal} handleClose={handleCloseRegister} />
               </div>
             </div>
           </Form>

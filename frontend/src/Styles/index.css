@@ -235,7 +235,28 @@ a {
     text-decoration: none !important;
 }
 
+.nav-pills .nav-link {
+    color: #000 !important;
+    padding: 15px !important;
+}
+
+.nav-pills .nav-link.active, .nav-pills .nav-link:hover, .nav-pills .show>.nav-link {
+    background-color: #EDEFFE !important;
+}
+
+.right-content {
+    background-color: #EDEFFE;
+    color: black;
+}
+.right-content h1, .right-content h2{
+    color:#9B41FE;
+}
+
 .error-message {
     color:  #cc0000;
-  }
+}
+
+.menu-central .nav-link.active, .menu-central .nav-link:hover {
+    border-bottom: solid 3px #9B41FE;
+}
   
