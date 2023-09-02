@@ -43,7 +43,7 @@ function ResetPass () {
   return (
     <div className="container mt-5">
       <div className='row'>
-        <div className='col-4'></div>
+        <div className='col-3'></div>
         <div className='col-6 login-container p-5 py-5 rounded-4'>
           <Formik
             initialValues={{ Contrasena: '', ContrasenaRepetida: ''  }}
@@ -100,7 +100,7 @@ function ResetPass () {
             )}
           </Formik>
         </div>
-        <div className='col-4'></div>
+        <div className='col-3'></div>
       </div>
       <ToastContainer />
     </div>

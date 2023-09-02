@@ -1,11 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
 import axios from 'axios';
 import * as Yup from 'yup';
 import Select from 'react-select';
 import { ToastContainer, toast } from 'react-toastify';
 import { Formik, Form, Field, ErrorMessage } from 'formik';
-import NavFeed from './NavFeed';
 import { useUserContext } from '../../Usercontext';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
@@ -18,8 +16,8 @@ const options = [
 ];
 
 function Profile() {
-  const { id } = useParams();
   const { userState, dispatch } = useUserContext();
+  const id = userState.id;
   const [showPassword, setShowPassword] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [initialValues, setInitialValues] = useState({
@@ -120,116 +118,124 @@ function Profile() {
         >
           {({ values, setFieldValue }) => (
             <Form>
-              <h3 className="text-center">Editar perfil</h3>
-              <div className="d-flex justify-content-center align-items-center mb-3">
-                <div className="rounded-circle profile-image">
-                  {selectedImage ? (
-                    <img src={selectedImage instanceof File ? URL.createObjectURL(selectedImage) : selectedImage}  height="250px" width="250px" alt="Profile" className="img-fluid rounded-circle" />
-                  ) : (
-                    <div className="default-image">
-                      <img src={values.Foto} alt="Profile" height="250px" width="250px" className="img-fluid rounded-circle" />
-                    </div>
-                  )}
-                </div>
-              </div>
-              <div className="form-group mt-2">
-                <input
-                  type="file"
-                  className="form-control inputs"
-                  name="Foto"
-                  accept="image/*"
-                  onChange={(event) => {
-                    setFieldValue('Foto', event.currentTarget.files[0]);
-                    handleImageChange(event);
-                  }}
-                />
-              </div>
-              <div className="form-group mt-2">
-                <Field
-                  type="text"
-                  className="form-control mt-1 inputs"
-                  placeholder="Mote"
-                  name="Mote"
-                  value={values.Mote}
-                  onChange={(e) => setFieldValue("Mote", e.target.value)}
-                />
-                <ErrorMessage name="Mote" component="div" className="error-message" />
-              </div>
-              <div className="form-group mt-2">
-                <Field
-                  type="text"
-                  className="form-control mt-1 inputs"
-                  placeholder="Nombre"
-                  name="Nombre"
-                  value={values.Nombre}
-                  onChange={(e) => setFieldValue("Nombre", e.target.value)}
-                />
-              </div>
-              <div className="form-group mt-2">
-                <Field
-                  type="text"
-                  className="form-control mt-1 inputs"
-                  placeholder="Apellido"
-                  name="Apellido"
-                  value={values.Apellido}
-                  onChange={(e) => setFieldValue("Apellido", e.target.value)}
-                />
-              </div>
-              <div className="form-group mt-3">
-                <Field
-                  type="email"
-                  className="form-control mt-1 inputs"
-                  placeholder="Email"
-                  name="Email"
-                  value={values.Email}
-                  onChange={(e) => setFieldValue("Email", e.target.value)}
-                />
-                <ErrorMessage name="Email" component="div" className="error-message" />
-              </div>
-              <div className="form-group mt-3">
-                <div className="input-group">
-                  <Field
-                    type={showPassword ? 'text' : 'password'}
-                    className="form-control inputs"
-                    placeholder="Contraseña"
-                    name="Contrasena"
-                    onChange={(e) => setFieldValue("Contrasena", e.target.value)}
-                  />
-                  <div className="input-group-append eye-icon-container">
-                    <span className="input-group-text eye-icon" onClick={() => setShowPassword(!showPassword)}>
-                      <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
-                    </span>
+              <h3 className="text-center mt-5">Editar perfil</h3>
+              <div className="mb-3">
+                <div className="row mt-5">
+                  <div className="col-2 rounded-circle profile-image">
+                    {selectedImage ? (
+                      <img src={selectedImage instanceof File ? URL.createObjectURL(selectedImage) : selectedImage}  height="120px" width="120px" alt="Profile" className="rounded-circle" />
+                    ) : (
+                      <div className="default-image">
+                        <img src={values.Foto} alt="Profile" height="120px" width="120px" className="rounded-circle" />
+                      </div>
+                    )}
+                  </div>
+                  <div className="col-10 form-group mt-2 d-flex align-items-center"> 
+                    <input
+                      type="file"
+                      className="form-control inputs"
+                      name="Foto"
+                      accept="image/*"
+                      onChange={(event) => {
+                        setFieldValue('Foto', event.currentTarget.files[0]);
+                        handleImageChange(event);
+                      }}
+                    />
                   </div>
                 </div>
-                <ErrorMessage name="Contrasena" component="div" className="error-message" />
-              </div>
-              <div className="form-group mt-2">
-                <Field
-                  type="text"
-                  className="form-control mt-1 inputs"
-                  placeholder="Descripción"
-                  name="Descripcion"
-                  value={values.Descripcion}
-                  onChange={(e) => setFieldValue("Descripcion", e.target.value)}
-                />
-              </div>
-              <div className="form-group mt-2">
-                <Select
-                  defaultValue={options.filter(option => initialValues.Gustos.includes(option.value))}
-                  onChange={(selectedOptions) => setFieldValue('Gustos', selectedOptions.map(option => option.value))}
-                  options={options}
-                  isMulti
-                  isSearchable
-                  placeholder="Gustos"
-                  name="Gustos"
-                  value={values.Gustos.map(gusto => ({ value: gusto, label: gusto }))}
-                />
-                <ErrorMessage name="Gustos" component="div" className="error-message" />
-              </div>
-              <div className="d-grid gap-2 mt-3">
-                <button type="submit" className="btn submit-bt">
-                    Enviar
-                </button>
+                <div className='row'>
+                  <div className="col-md-6">
+                    <div className="form-group mt-2">
+                      <Field
+                        type="text"
+                        className="form-control mt-1 inputs"
+                        placeholder="Mote"
+                        name="Mote"
+                        value={values.Mote}
+                        onChange={(e) => setFieldValue("Mote", e.target.value)}
+                      />
+                      <ErrorMessage name="Mote" component="div" className="error-message" />
+                    </div>
+                    <div className="form-group mt-2">
+                      <Field
+                        type="text"
+                        className="form-control mt-1 inputs"
+                        placeholder="Nombre"
+                        name="Nombre"
+                        value={values.Nombre}
+                        onChange={(e) => setFieldValue("Nombre", e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group mt-2">
+                      <Field
+                        type="text"
+                        className="form-control mt-1 inputs"
+                        placeholder="Apellido"
+                        name="Apellido"
+                        value={values.Apellido}
+                        onChange={(e) => setFieldValue("Apellido", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                  <div className="col-md-6">
+                    <div className="form-group mt-2">
+                      <Field
+                        type="email"
+                        className="form-control mt-1 inputs"
+                        placeholder="Email"
+                        name="Email"
+                        value={values.Email}
+                        onChange={(e) => setFieldValue("Email", e.target.value)}
+                      />
+                      <ErrorMessage name="Email" component="div" className="error-message" />
+                    </div>
+                    <div className="form-group">
+                      <div className="input-group mt-2">
+                        <Field
+                          type={showPassword ? 'text' : 'password'}
+                          className="form-control inputs"
+                          placeholder="Contraseña"
+                          name="Contrasena"
+                          onChange={(e) => setFieldValue("Contrasena", e.target.value)}
+                        />
+                        <div className="input-group-append eye-icon-container">
+                          <span className="input-group-text eye-icon" onClick={() => setShowPassword(!showPassword)}>
+                            <FontAwesomeIcon icon={showPassword ? faEye : faEyeSlash} />
+                          </span>
+                        </div>
+                      </div>
+                      <ErrorMessage name="Contrasena" component="div" className="error-message" />
+                    </div>
+                    <div className="form-group mt-2">
+                      <Field
+                        type="text"
+                        className="form-control mt-1 inputs"
+                        placeholder="Descripción"
+                        name="Descripcion"
+                        value={values.Descripcion}
+                        onChange={(e) => setFieldValue("Descripcion", e.target.value)}
+                      />
+                    </div>
+                    <div className="form-group mt-2">
+                      <Select
+                        defaultValue={options.filter(option => initialValues.Gustos.includes(option.value))}
+                        onChange={(selectedOptions) => setFieldValue('Gustos', selectedOptions.map(option => option.value))}
+                        options={options}
+                        isMulti
+                        isSearchable
+                        placeholder="Gustos"
+                        name="Gustos"
+                        value={values.Gustos.map(gusto => ({ value: gusto, label: gusto }))}
+                      />
+                      <ErrorMessage name="Gustos" component="div" className="error-message" />
+                    </div>
+                  </div>
+                </div>
+                <div className=" d-flex justify-content-center ">
+                  <button type="submit" className="btn submit-bt p-4 mt-2">
+                      Editar
+                  </button>
+                </div>
               </div>
             </Form>
           )}

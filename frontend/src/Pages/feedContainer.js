@@ -12,10 +12,6 @@ function FeedContainer() {
   const navigate = useNavigate();
   const { userState, dispatch } = useUserContext();
 
-  const handleEditProfileClick = () => {
-    dispatch({ type: 'SET_CURRENT_COMPONENT', payload: 'Profile' });
-  };
-
   return (
     <div className='container-fluid pt-3 login-container'>
       <div className='row'>
@@ -24,7 +20,7 @@ function FeedContainer() {
           <NavFeed />
         </div>
         <div className='col-md-7'>
-          {userState.currentComponent === 'CenterContent' ? (
+          {userState.currentComponent === 'Home' ? (
               <CenterContent />
             ) : (
               <Profile />

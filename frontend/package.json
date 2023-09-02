@@ -19,7 +19,11 @@
     "bcrypt": "^5.1.1",
     "bcryptjs": "^2.4.3",
     "bootstrap": "^5.3.1",
+    "crypto-browserify": "^3.12.0",
     "formik": "^2.4.3",
+    "jsonwebtoken": "^9.0.2",
+    "jwt-decode": "^3.1.2",
+    "nodemon": "^3.0.1",
     "react": "^18.2.0",
     "react-bootstrap": "^2.8.0",
     "react-dom": "^18.2.0",
@@ -56,5 +60,8 @@
   },
   "devDependencies": {
     "@babel/plugin-proposal-private-property-in-object": "^7.21.11"
+  },
+  "nodemonConfig": {
+    "ext": "js,json,jsx,hbs,html"
   }
 }

@@ -242,13 +242,14 @@ a {
 
 .nav-pills .nav-link.active, .nav-pills .nav-link:hover, .nav-pills .show>.nav-link {
     background-color: #EDEFFE !important;
+    cursor: pointer;
 }
 
 .right-content {
     background-color: #EDEFFE;
     color: black;
 }
-.right-content h1, .right-content h2{
+.right-content h1, .right-content h2, .right-content h3, .right-content h4{
     color:#9B41FE;
 }
 

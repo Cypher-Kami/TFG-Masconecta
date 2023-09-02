@@ -2,12 +2,12 @@ import { createContext, useContext, useReducer } from 'react';
 
 const UserContext = createContext();
 
-export const UserProvider = ({ children }) => {
+export const UserProvider = ({ children, initialUserID }) => {
   const initialState = {
-    id: null,
+    id: initialUserID || null,
     mote: '',
     email: '',
-    currentComponent: 'CenterContent',
+    currentComponent: 'Home',
   };
 
   const userReducer = (state, action) => {

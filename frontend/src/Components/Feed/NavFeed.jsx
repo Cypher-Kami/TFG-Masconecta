@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import { useUserContext } from '../../Usercontext';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import HomeIcon from '../../Assets/iconos/Menu/Inicio.svg'
@@ -9,14 +9,14 @@ import EventIcon from '../../Assets/iconos/Menu/Evento.svg'
 import GroupIcon from '../../Assets/iconos/Menu/Grupo.svg'
 
 function NavFeed() {
-    const { id } = useParams();
     const navigate = useNavigate();
     const { userState, dispatch } = useUserContext();
+    const [activeLink, setActiveLink] = useState('Home');
+    const id = userState.id;
 
-    const handleEditProfileClick = () => {
-        const userId = userState.id;
-        dispatch({ type: 'SET_CURRENT_COMPONENT', payload: 'Profile' });
-        dispatch({ type: 'SET_USER', payload: { id: userId } });
+    const handleComponent = ( Component ) => {
+        setActiveLink(Component);
+        dispatch({ type: 'SET_CURRENT_COMPONENT', payload: Component });
     };
 
     const handleLogout = () => {
@@ -27,7 +27,9 @@ function NavFeed() {
     <>
         <ul class="nav nav-pills flex-column">
             <li class="nav-item">
-                <a class="nav-link px-5 active" aria-current="page" href="#">
+                <a class={`nav-link px-5 ${activeLink === 'Home' ? 'active' : ''}`} aria-current="page"
+                    onClick={() => handleComponent("Home")}
+                >
                     <img src={HomeIcon} width="16px" height="16px" className='mx-3' />
                     Inicio
                 </a>
@@ -44,15 +46,14 @@ function NavFeed() {
                     Notificaciones
                 </a>
             </li>
-            <li class="nav-item">
-                <Link
-                    to={`/editar-perfil/${userState.id}`}
-                    className="nav-link"
-                    onClick={() => handleEditProfileClick(userState.id)}
+            <li className="nav-item">
+                <a
+                    className={`nav-link px-5 ${activeLink === 'Profile' ? 'active' : ''}`}
+                    onClick={() => handleComponent("Profile")}
                 >
                     <img src={ProfIcon} width="16px" height="16px" className='mx-3' />
                     Editar Perfil
-                </Link>
+                </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="#">
@@ -73,9 +74,11 @@ function NavFeed() {
             </li>
         </ul>
         <hr />
-        <button className="btn submit-bt">
-            Algo acá
-        </button>
+        <div className='d-flex justify-content-center'>
+            <button className="btn submit-bt p-4">
+                Publicar
+            </button>
+        </div>
     </>
   );
 }

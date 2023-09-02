@@ -132,7 +132,7 @@ router.post('/forgotpassword', async (req, res) => {
       return res.status(404).json({ message: 'Usuario no encontrado, registrate' });
     }
 
-    const token = jwt.sign({ userId: usuario.ID }, 'tu_secreto', { expiresIn: '1h' });
+    const token = jwt.sign({ userId: usuario.ID }, 'tu_secreto', { expiresIn: '10m' });
 
     const resetUrl = `http://localhost:3000/resetpassword/${token}`;
 
