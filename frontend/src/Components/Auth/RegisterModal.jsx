@@ -19,6 +19,11 @@ const options = [
   { value: 'Conejos', label: 'Conejos' },
 ];
 
+const optionsUsuario = [
+  { value: 'Usuario', label: 'Usuario' },
+  { value: 'Empresa', label: 'Empresa' },
+];
+
 const popover = (
   <Popover id="popover-right">
     <Popover.Title as="h3">Términos y Condiciones</Popover.Title>
@@ -34,7 +39,8 @@ function RegisterModal({ showModal, handleClose }) {
     formData.append('Mote', values.Mote);
     formData.append('Email', values.Email);
     formData.append('Contrasena', values.Contrasena);
-    formData.append('Foto', values.Foto); 
+    formData.append('Foto', values.Foto);
+    formData.append('tipoCuenta', values.tipoCuenta); 
     formData.append('Gustos', (values.Gustos).join(","));
     try {
       const response = await axios.post('http://localhost:3001/auth/register', formData);
@@ -53,7 +59,7 @@ function RegisterModal({ showModal, handleClose }) {
   const validationSchema = Yup.object({
     Mote: Yup.string().required('Campo requerido'),
     Email: Yup.string().email('Correo electrónico inválido').required('Campo requerido'),
-    Contrasena: Yup.string().required('Campo requerido').min(8, "La contraseña debe tener minimo 8 caracteres"),
+    Contrasena: Yup.string().required('Campo requerido').min(8, "La contraseña debe tener mínimo 8 carácteres"),
     //Foto: Yup.mixed().required('Campo requerido'),
     Gustos: Yup.array().required('Campo requerido'),
     Terminos: Yup.boolean().oneOf([true], 'Debes aceptar los términos y condiciones').required('Campo requerido'),
@@ -94,7 +100,8 @@ function RegisterModal({ showModal, handleClose }) {
               Contrasena: '',
               Foto: null,
               Gustos: [],
-              Terminos: false
+              Terminos: false,
+              tipoCuenta: "Usuario",
             }}
             validationSchema={validationSchema}
             onSubmit={(handleSubmit)}
@@ -108,6 +115,15 @@ function RegisterModal({ showModal, handleClose }) {
                   <h3 className="text-center mb-5">Crea tu mascocuenta</h3>
                   {step === 1 && (
                     <>
+                      <div className="form-group mt-3">
+                        <Select
+                          defaultValue={options.filter((option) => option.value === values.tipoCuenta)}
+                          options={optionsUsuario}
+                          onChange={(selectedOption) => setFieldValue("tipoCuenta", selectedOption.value)}
+                          placeholder="Tipo de cuenta"
+                          name="tipoCuenta"
+                        />
+                      </div>
                       <div className="form-group mt-3">
                         <Field
                           type="text"
@@ -196,7 +212,9 @@ function RegisterModal({ showModal, handleClose }) {
                   )}
                   <div className="d-grid gap-2 mt-3">
                     {step < totalSteps ? (
-                      <button className="btn submit-bt" onClick={handleNextStep} disabled={!(values.Mote && values.Email && values.Contrasena)}>Siguiente</button>
+                      <button className="btn submit-bt" onClick={handleNextStep} 
+                        disabled={!(values.Mote && values.Email && values.Contrasena) || values.Contrasena.length < 8}
+                      >Siguiente</button>
                     ) : (
                       <button type="submit" className="btn btn submit-bt" disabled={!(values.Terminos && values.Foto && values.Gustos)}>
                         Registrarse

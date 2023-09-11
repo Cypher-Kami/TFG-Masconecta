@@ -3,25 +3,13 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fileUpload = require('express-fileupload');
-const cloudinary = require('cloudinary').v2;
+const { handleUpload } = require('../config/CloudinaryConfig');
+const { transporter } = require('../config/mailConfig');
 const connection = require('../db');
 const dotenv = require('dotenv');
 dotenv.config();
 
-cloudinary.config({
-  cloud_name: 'dbfuxhzss', 
-  api_key: '722694822355158',
-  api_secret: 'NUNSBuPDPB0-NEmZiYj9TIDGmyg'
-});
-
 router.use(fileUpload());
-
-async function handleUpload(file) {
-  const res = await cloudinary.uploader.upload(file, {
-    resource_type: "auto",
-  });
-  return res;
-}
 
 // Ruta para obtener todos los usuarios
 router.get('/', async (req, res) => {
@@ -70,7 +58,6 @@ router.put('/editar-perfil/:userId', async (req, res) => {
   const userId = req.params.userId;
   const { Mote, Email, Gustos, Nombre, Apellido, Descripcion, Contrasena } = req.body;
   const Foto = req.files && req.files.Foto;
-  console.log(Mote, Email, Gustos, Nombre, Apellido, Descripcion, Contrasena, Foto);
   let updateFields = {
     Mote,
     Gustos,

@@ -7,6 +7,8 @@ export const UserProvider = ({ children, initialUserID }) => {
     id: initialUserID || null,
     mote: '',
     email: '',
+    foto: '',
+    publicaciones: [],
     currentComponent: 'Home',
   };
 
@@ -17,10 +19,16 @@ export const UserProvider = ({ children, initialUserID }) => {
           ...state,
           id: action.payload.id,
           mote: action.payload.mote,
+          foto: action.payload.foto,
           email: action.payload.email,
         };
       case 'CLEAR_USER':
         return initialState;
+      case 'ADD_PUBLICACION':
+        return {
+          ...state,
+          publicaciones: [action.payload, ...state.publicaciones],
+        };
       case 'SET_CURRENT_COMPONENT':
         return {
           ...state,

@@ -42,9 +42,9 @@ function Profile() {
           Gustos: userData.Gustos,
           Contrasena: '',
           Foto: userData.Foto,
-          Nombre: userData.Nombre,
-          Apellido: userData.Apellido,
-          Descripcion: userData.Descripcion,
+          Nombre: (userData.Nombre && userData.Nombre !=="null") ? userData.Nombre : '',
+          Apellido: (userData.Apellido && userData.Apellido !=="null") ? userData.Apellido : '',
+          Descripcion: (userData.Descripcion && userData.Descripcion !=="null") ? userData.Descripcion : '',
         });
       })
       .catch(error => {
@@ -66,8 +66,6 @@ function Profile() {
     let formData = new FormData();
     formData.append('Mote', values.Mote);
     formData.append('Email', values.Email);
-    console.log(values.Contrasena, "Contraseña");
-    console.log(initialValues.Contrasena, "Contraseña inicial");
     if (values.Contrasena && values.Contrasena !== initialValues.Contrasena) {
       formData.append('Contrasena', values.Contrasena);
     } else {
@@ -78,11 +76,9 @@ function Profile() {
     formData.append('Nombre', values.Nombre);
     formData.append('Apellido', values.Apellido);
     formData.append('Descripcion', values.Descripcion);
-    console.log(values.Foto);
     if (values.Foto) {
       formData.append('Foto', values.Foto);
     }
-    console.log(formData);
     try {
       const response = await axios.put(`http://localhost:3001/usuario/editar-perfil/${id}`, formData);
       if (response.status >= 200 && response.status < 300) {
@@ -93,6 +89,7 @@ function Profile() {
             id: id,
             mote: values.Mote,
             email: values.Email,
+            foto: values.Foto,
           },
         });
       }

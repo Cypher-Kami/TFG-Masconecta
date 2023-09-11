@@ -5,8 +5,9 @@ import HomeIcon from '../../Assets/iconos/Menu/Inicio.svg'
 import MsgIcon from '../../Assets/iconos/Menu/Mensaje.svg'
 import NotifIcon from '../../Assets/iconos/Menu/Notificacion.svg'
 import ProfIcon from '../../Assets/iconos/Menu/Perfil.svg'
-import EventIcon from '../../Assets/iconos/Menu/Evento.svg'
-import GroupIcon from '../../Assets/iconos/Menu/Grupo.svg'
+import EventIcon from '../../Assets/iconos/Menu/Eventos.svg'
+import GroupIcon from '../../Assets/iconos/Menu/Grupos.svg'
+import CerrarSesionIcon from '../../Assets/iconos/Menu/Cerrar sesion.svg'
 
 function NavFeed() {
     const navigate = useNavigate();
@@ -20,9 +21,17 @@ function NavFeed() {
     };
 
     const handleLogout = () => {
-        localStorage.getItem('authToken') && localStorage.removeItem('authToken');
+        if (localStorage.getItem('authToken')) {
+            localStorage.removeItem('authToken');
+        }
+        
+        if (sessionStorage.getItem('authToken')) {
+            sessionStorage.removeItem('authToken');
+        }
+    
         navigate('/');
     };
+    
   return (
     <>
         <ul class="nav nav-pills flex-column">
@@ -67,16 +76,17 @@ function NavFeed() {
                     Grupos
                 </a>
             </li>
-            <li class="nav-item" onClick={handleLogout}>
-                <button className="nav-link btn" type="button">
+            <li class="nav-item">
+                <a class="nav-link" onClick={handleLogout}>
+                    <img src={CerrarSesionIcon} width="16px" height="16px" className='mx-3' />
                     Cerrar sesión
-                </button>
+                </a>
             </li>
         </ul>
         <hr />
         <div className='d-flex justify-content-center'>
             <button className="btn submit-bt p-4">
-                Publicar
+                Configuración
             </button>
         </div>
     </>

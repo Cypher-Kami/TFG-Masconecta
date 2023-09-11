@@ -35,7 +35,7 @@ function ResetPass () {
       };
     
     const validationSchema = Yup.object({
-        Contrasena: Yup.string().required('Campo requerido'),
+        Contrasena: Yup.string().required('Campo requerido').min(8, "La contraseña debe tener mínimo 8 carácteres"),
         ContrasenaRepetida: Yup.string().required('Campo requerido')
         .oneOf([Yup.ref('Contrasena'), null], 'Las contraseñas no coinciden'),
     });

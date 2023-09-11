@@ -7,13 +7,15 @@ app.use(express.json());
 
 // Importar las rutas
 const usuarioRouter = require('./routes/usuario');
-const eventoRouter = require('./routes/evento');;
+const eventoRouter = require('./routes/evento');
+const publicacionRouter = require('./routes/publicacion');;
 const authRouter = require('./routes/auth');
 
 // Usar las rutas
 app.use('/usuario', usuarioRouter);
 app.use('/evento', eventoRouter);
 app.use('/auth', authRouter);
+app.use('/publicacion', publicacionRouter);
 
 app.use((err, req, res, next) => {
   console.error('Error en la aplicación:', err);

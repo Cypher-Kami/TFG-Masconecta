@@ -32,16 +32,21 @@ function Login() {
       if (response.status === 200) {
         toast.success('Inicio de sesión exitoso');
         const token = response.data.token;
-        values.Recordarme && localStorage.setItem('authToken', token);
+        localStorage.clear();
         dispatch({
           type: 'SET_USER',
           payload: {
             id: response.data.userID,
             mote: values.Mote,
-            contraseña: values.Contrasena,
+            foto: values.Foto,
+            email: values.Email,
           },
         });
-
+        if (values.Recordarme) {
+          localStorage.setItem('authToken', token);
+        } else {
+          sessionStorage.setItem('authToken', token);
+        }
         navigate('/feed');
       }else {
         toast.error('No se pudo iniciar sesión');

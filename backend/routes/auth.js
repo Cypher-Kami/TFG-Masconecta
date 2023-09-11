@@ -3,36 +3,13 @@ const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const fileUpload = require('express-fileupload');
-const cloudinary = require('cloudinary').v2;
-const nodemailer = require('nodemailer');
 const connection = require('../db');
+const { handleUpload } = require('../config/CloudinaryConfig');
+const { transporter } = require('../config/mailConfig');
 const dotenv = require('dotenv');
 dotenv.config();
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.gmail.com",
-  port: 465,
-  secure: true,
-  auth: {
-    user: 'bitarveronica@gmail.com',
-    pass: 'gumdoeeatejydypw'
-  }
-});
-
-cloudinary.config({
-  cloud_name: 'dbfuxhzss', 
-  api_key: '722694822355158',
-  api_secret: 'NUNSBuPDPB0-NEmZiYj9TIDGmyg'
-});
-
 router.use(fileUpload());
-
-async function handleUpload(file) {
-  const res = await cloudinary.uploader.upload(file, {
-    resource_type: "auto",
-  });
-  return res;
-}
 
 router.post('/login', async (req, res) => {
     const { Email, Contrasena, Recordarme } = req.body;
@@ -61,7 +38,7 @@ router.post('/login', async (req, res) => {
       }
   
       // Generar un token de autenticación
-      const token = jwt.sign({ UserID: usuario.ID }, 'mi_secreto_secreto', { expiresIn: '12h' });
+      const token = jwt.sign({ UserID: usuario.ID }, 'mi_secreto_secreto', { expiresIn: '1h' });
       
       res.status(200).json({ message: 'Inicio de sesión exitoso.', token, userID: usuario.ID });
     } catch (error) {
@@ -70,7 +47,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
-  const { Mote, Contrasena, Email, Gustos } = req.body;
+  const { Mote, Contrasena, Email, Gustos, tipoCuenta } = req.body;
   const Foto = req.files && req.files.Foto;
   try {
     // Verificar si el usuario ya existe en la base de datos
@@ -96,11 +73,13 @@ router.post('/register', async (req, res) => {
     const uploadResult = await handleUpload(dataURI);
     const fotoUrl = uploadResult.secure_url;
 
+    const esEmpresa = tipoCuenta === "Empresa";
+
     // Insertar el nuevo usuario en la base de datos
     await new Promise((resolve, reject) => {
       connection.query(
-        'INSERT INTO Usuario (Mote, Contrasena, Email, Foto, Gustos) VALUES (?, ?, ?, ?, ?)',
-        [Mote, hashedContraseña, Email, fotoUrl, Gustos],
+        'INSERT INTO Usuario (Mote, Contrasena, Email, Foto, Gustos, EsEmpresa) VALUES (?, ?, ?, ?, ?, ?)',
+        [Mote, hashedContraseña, Email, fotoUrl, Gustos, esEmpresa],
         (error, results) => {
           if (error) reject(error);
           resolve(results);
