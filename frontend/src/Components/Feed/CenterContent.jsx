@@ -74,8 +74,8 @@ function CenterContent() {
             toast.error('Error al publicar');
         }
         } catch (error) {
-        toast.error('Error al publicar');
-        console.error(error);
+            toast.error('Error al publicar');
+            console.error(error);
         }
     };
 

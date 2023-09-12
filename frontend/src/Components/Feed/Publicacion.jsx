@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import axios from 'axios';
+import { Dropdown } from 'react-bootstrap';
 import { useUserContext } from '../../Usercontext';
 import { ToastContainer, toast } from 'react-toastify';
 import MeGustaIcon from '../../Assets/iconos/Publicaciones/Me gusta.svg';
@@ -32,6 +33,7 @@ function Publicacion() {
   const todasLasPublicaciones = [...publicacionesContext, ...publicacionesBD];
 
   const handleDelete = async (publiID) => {
+    console.log(publiID);
     try {
         await axios.delete(`http://localhost:3001/publicacion/delete-publication/${publiID}`);
         setRefreshKey(prevKey => prevKey + 1);
@@ -42,61 +44,61 @@ function Publicacion() {
 
   return (
   <>
-    {
+  {
   todasLasPublicaciones.map((publi) => (
-    <div key={publi.UsuarioID}>
-      <div className='row mt-2'>
-        <div className='col d-flex justify-content-start'>
-          <img
-            src={foto}
-            alt="Imagen 2"
-            className="rounded-circle me-2"
-            width="50"
-            height="50"
-          />
-          <h4 className="align-items-center mx-2">{mote}</h4>
+    <div key={publi.ID} className='card mb-4'>
+      <div className='card-body'>
+        <div className='row'>
+          <div className='col-10 d-flex align-items-center'>
+            <img
+              src={foto}
+              alt="Imagen 2"
+              className="rounded-circle me-2"
+              width="50"
+              height="50"
+            />
+            <h4 className="mx-2">{mote}</h4>
+          </div>
+          <div className='col-2 d-flex justify-content-end'>
+            <Dropdown>
+              <Dropdown.Toggle variant="light" id="dropdown-basic">
+                ...
+              </Dropdown.Toggle>
+              <Dropdown.Menu>
+                <Dropdown.Item href="#">Editar</Dropdown.Item>
+                <Dropdown.Item href="#" onClick={() => handleDelete(publi.ID)}>Eliminar</Dropdown.Item>
+              </Dropdown.Menu>
+            </Dropdown>
+            <button type="submit" className='btn feed-bt px-4 py-2 mx-2 rounded mb-4'>
+              Seguir
+            </button>
+          </div>
         </div>
-        <div className='col d-flex justify-content-end'>
-        <div class="dropdown">
-          <a class="btn btn-secondary dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-            ...
-          </a>
-
-          <ul class="dropdown-menu">
-            <li><a class="dropdown-item" href="#">Editar</a></li>
-            <li><a class="dropdown-item" href="#" onClick={() => handleDelete(publi.ID)}>Eliminar</a></li>
-          </ul>
-        </div>
-          <button type="submit" className='btn feed-bt px-4 py-2 rounded mb-4'>
-            Seguir
-          </button>
-        </div>
-      </div>
-      { publi.Foto }
-      <div className='row'>
-        {publi.Foto ? <img src={publi.Foto} height="200px" className='rounded-4' /> : null}
-      </div>
-      <div className='row'>
-        <div className='col d-flex justify-content-start'>
-          <h2>{publi.Contenido}</h2>
-        </div>
-        <div className='col d-flex justify-content-end'>
-          <button type="button" className='btn btn-light'>
-            <img src={ComentarioIcon} width="16px" height="16px" className='mx-1' />
-            Foto
-          </button>
-          <button type="button" className='btn btn-light mx-2'>
-            <img src={MeGustaIcon} width="16px" height="16px" className='mx-1' />
-            Video
-          </button>
+        <div className="row">
+          <p className="fs-5">{publi.Contenido}</p>
+          {publi.Foto ? 
+            (
+              <div class="d-flex justify-content-center align-items-center overflow-hidden">
+              <img src={publi.Foto} height="200px" />
+              </div>
+            )
+            : null}
         </div>
       </div>
-      <hr />
+      <div className='card-footer'>
+        <button type="button" className='btn btn-light'>
+          <img src={ComentarioIcon} width="16px" height="16px" className='mx-1' />
+          Comentarios
+        </button>
+        <button type="button" className='btn btn-light mx-2'>
+          <img src={MeGustaIcon} width="16px" height="16px" className='mx-1' />
+          Me gusta
+        </button>
+      </div>
     </div>
   ))
 }
-  </>
-  )
-}
+</>
+)}
 
-export default Publicacion
+export default Publicacion;

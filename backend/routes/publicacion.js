@@ -30,7 +30,7 @@ router.post('/publish', async (req, res) => {
                 [publishContent.Contenido, publishContent.Foto || null, UsuarioID],
                 (error, results) => {
                 if (error) reject(error);
-                resolve(results);
+                    resolve(results);
                 }
             );
         });
@@ -44,7 +44,7 @@ router.get('/publicaciones/:id', async (req, res) => {
     const usuarioID = req.params.id;
     try {
       connection.query(
-        'SELECT * FROM Publicacion WHERE UsuarioID = ? ORDER BY Fecha_Creacion ASC',
+        'SELECT * FROM Publicacion WHERE UsuarioID = ? ORDER BY Fecha_Creacion DESC',
         [usuarioID],
         (error, results) => {
           if (error) {
