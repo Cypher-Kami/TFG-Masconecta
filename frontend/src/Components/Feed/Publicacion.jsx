@@ -11,6 +11,7 @@ function Publicacion() {
   const { id, mote, foto, publicaciones: publicacionesContext } = userState;
   const [publicacionesBD, setPublicacionesBD] = useState([]);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [createdObjectURLs, setCreatedObjectURLs] = useState([]);
 
   useEffect(() => {
     axios.get(`http://localhost:3001/publicacion/publicaciones/${id}`)
@@ -30,7 +31,20 @@ function Publicacion() {
       });
   }, [id, refreshKey]);
 
+  useEffect(() => {
+    return () => {
+        createdObjectURLs.forEach((url) => URL.revokeObjectURL(url));
+    };
+  }, [createdObjectURLs]);
+
   const todasLasPublicaciones = [...publicacionesContext, ...publicacionesBD];
+
+  const publicacionesUnicas = todasLasPublicaciones.reduce((accumulator, current) => {
+    if (!accumulator.some(publicacion => publicacion.UsuarioID === current.UsuarioID)) {
+      accumulator.push(current);
+    }
+    return accumulator;
+  }, []);
 
   const handleDelete = async (publiID) => {
     console.log(publiID);
@@ -40,12 +54,21 @@ function Publicacion() {
       } catch (error) {
         toast.error("Error al eliminar la publicación:", error);
     }
-}
+  }
+
+  function getPublicacionImageUrl(publicacionFoto) {
+    if (publicacionFoto instanceof File) {
+      const objectURL = URL.createObjectURL(publicacionFoto);
+      setCreatedObjectURLs((prevURLs) => [...prevURLs, objectURL]);
+      return objectURL;
+    }
+    return publicacionFoto;
+  }
 
   return (
   <>
   {
-  todasLasPublicaciones.map((publi) => (
+  publicacionesUnicas.map((publi) => (
     <div key={publi.ID} className='card mb-4'>
       <div className='card-body'>
         <div className='row'>
@@ -79,7 +102,7 @@ function Publicacion() {
           {publi.Foto ? 
             (
               <div class="d-flex justify-content-center align-items-center overflow-hidden">
-              <img src={publi.Foto} height="200px" />
+                <img src={getPublicacionImageUrl(publi.Foto)} height="200px" />
               </div>
             )
             : null}
