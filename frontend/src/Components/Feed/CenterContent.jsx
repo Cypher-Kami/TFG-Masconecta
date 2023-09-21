@@ -3,20 +3,21 @@ import axios from 'axios';
 import Publicacion from './Publicacion'
 import { useUserContext } from '../../Usercontext';
 import { ToastContainer, toast } from 'react-toastify';
+//import { Picker } from 'emoji-mart'
 import VideoIcon from '../../Assets/iconos/Crear publicacion/Video.svg';
 import ImagenIcon from '../../Assets/iconos/Crear publicacion/Imagen.svg';
 import EventoIcon from '../../Assets/iconos/Crear publicacion/Evento.svg';
 
 function CenterContent() {
     const { userState, dispatch } = useUserContext();
+    const id = userState.id  || 0;
+    const [publicacion, setPublicacion] = useState("");
+    const [fotoPubli, setFotoPubli] = useState(null);
+    const [refreshKey, setRefreshKey] = useState(0);
     const [values, setValues] = useState({
         Mote: '',
         Foto: null,
     });
-    const id = userState.id  || 0;
-    const [publicacion, setPublicacion] = useState("");
-    const [fotoPubli, setFotoPubli] = useState(null);
-    const [previewURL, setPreviewURL] = useState(null);
 
     const handleImageChange = (event) => {
         const file = event.target.files[0];
@@ -25,11 +26,14 @@ function CenterContent() {
         }
     };
 
+    const refrescarPublicaciones = () => {
+        setRefreshKey(prevKey => prevKey + 1);
+    };
+
     useEffect(() => {
         axios.get(`http://localhost:3001/usuario/${id}`)
           .then(response => {
             const userData = response.data;
-            console.log(userData);
             setValues({
                 ...values,
                 Mote: userData.Mote,
@@ -61,15 +65,9 @@ function CenterContent() {
         try {
         const response = await axios.post('http://localhost:3001/publicacion/publish', formData);
         if (response.status >= 200 && response.status < 300) {
+            setPublicacion("");
+            refrescarPublicaciones();
             toast.success('Publicación exitosa');
-            dispatch({
-                type: 'ADD_PUBLICACION',
-                payload: {
-                  Contenido: publicacion,
-                  Foto: fotoPubli,
-                  UsuarioID: id,
-                }
-            });
         } else {
             toast.error('Error al publicar');
         }
@@ -114,6 +112,7 @@ function CenterContent() {
                                 className='inputs px-2 my-2 rounded' 
                                 type="text" 
                                 placeholder='¿Que hace tú mascota hoy?'
+                                value={publicacion}
                                 onChange={(event) => setPublicacion(event.target.value)}
                             />
                         </div>
@@ -138,6 +137,7 @@ function CenterContent() {
                                 </button>
                             </div>
                             <div className='col-3 d-flex justify-content-end'>
+                                
                                 <button type="submit" className='btn feed-bt px-4 py-2 rounded mb-4'>
                                     Publicar
                                 </button>
@@ -151,7 +151,7 @@ function CenterContent() {
                     
                 </div>
             </div>
-            <Publicacion />
+            <Publicacion refreshKey={refreshKey} refrescarPublicaciones={refrescarPublicaciones} />
         <ToastContainer />
         </div>
     </>

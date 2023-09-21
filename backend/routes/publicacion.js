@@ -60,36 +60,36 @@ router.get('/publicaciones/:id', async (req, res) => {
 });
 
 router.put('/edit-publication/:id', async (req, res) => {
-  const publicacionID = req.params.id;
-  const { Contenido } = req.body;
-  const Foto = req.files && req.files.Foto;
-  let updateContent = {
-      Contenido,
-  };
+    const publicacionID = req.params.id;
+    const { Contenido } = req.body;
+    const Foto = req.files && req.files.Foto;
+    let updateContent = {
+        Contenido,
+    };
+    console.log(Contenido, publicacionID, Foto);
+    try {
+        if (Foto) {
+            const b64 = Buffer.from(Foto.data).toString("base64");
+            let dataURI = "data:" + Foto.mimetype + ";base64," + b64;
+            const uploadResult = await handleUpload(dataURI);
+            updateContent.Foto = uploadResult.secure_url;
+        }
 
-  try {
-      if (Foto) {
-          const b64 = Buffer.from(Foto.data).toString("base64");
-          let dataURI = "data:" + Foto.mimetype + ";base64," + b64;
-          const uploadResult = await handleUpload(dataURI);
-          updateContent.Foto = uploadResult.secure_url;
-      }
-
-      await new Promise((resolve, reject) => {
-          const query = 'UPDATE Publicacion SET Contenido = ?, Foto = ? WHERE ID = ?';
-          connection.query(
-              query,
-              [updateContent.Contenido, updateContent.Foto || null, publicacionID],
-              (error, results) => {
-                  if (error) reject(error);
-                  resolve(results);
-              }
-          );
-      });
-      res.status(200).json({ message: 'Publicación actualizada exitosamente.' });
-  } catch (error) {
-      res.status(500).json({ error: 'Error al actualizar la publicación: ' + error });
-  }
+        await new Promise((resolve, reject) => {
+            const query = 'UPDATE Publicacion SET Contenido = ?, Foto = ? WHERE ID = ?';
+            connection.query(
+                query,
+                [updateContent.Contenido, updateContent.Foto || null, publicacionID],
+                (error, results) => {
+                    if (error) reject(error);
+                    resolve(results);
+                }
+            );
+        });
+        res.status(200).json({ message: 'Publicación actualizada exitosamente.' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al actualizar la publicación: ' + error });
+    }
 });
 
 router.delete('/delete-publication/:id', (req, res) => {
