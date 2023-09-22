@@ -43,19 +43,26 @@ router.post('/publish', async (req, res) => {
 router.get('/publicaciones/:id', async (req, res) => {
     const usuarioID = req.params.id;
     try {
-      connection.query(
-        'SELECT * FROM Publicacion WHERE UsuarioID = ? ORDER BY Fecha_Creacion DESC',
-        [usuarioID],
-        (error, results) => {
-          if (error) {
-            res.status(500).json({ error: 'Error al obtener las publicaciones ' + error });
-          } else {
-            res.status(200).json(results);
-          }
-        }
-      );
+        // Consulta para obtener todas las publicaciones de un usuario y si al usuario le gusta o no
+        const publicaciones = await new Promise((resolve, reject) => {
+            connection.query(
+                'SELECT DISTINCT p.*, ' +
+                'CASE WHEN mg.ObjetoID IS NULL THEN 0 ELSE 1 END AS liked ' +
+                'FROM Publicacion AS p ' +
+                'LEFT JOIN MeGusta AS mg ON p.ID = mg.ObjetoID AND mg.UsuarioID = ? ' +
+                'WHERE p.UsuarioID = ?' +
+                'ORDER BY p.Fecha_Creacion DESC',
+                [usuarioID, usuarioID],
+                (error, results) => {
+                    if (error) reject(error);
+                    resolve(results);
+                }
+            );
+        });
+
+        res.status(200).json(publicaciones);
     } catch (error) {
-      res.status(500).json({ error: 'Error al obtener las publicaciones ' + error });
+        res.status(500).json({ error: 'Error al obtener las publicaciones: ' + error });
     }
 });
 
@@ -66,7 +73,6 @@ router.put('/edit-publication/:id', async (req, res) => {
     let updateContent = {
         Contenido,
     };
-    console.log(Contenido, publicacionID, Foto);
     try {
         if (Foto) {
             const b64 = Buffer.from(Foto.data).toString("base64");
@@ -148,26 +154,44 @@ router.get('/search', async (req, res) => {
 });
 
 router.post('/like', async (req, res) => {
-    const { TipoObjeto, ObjetoID, UsuarioID } = req.body;
-
-    if (!TipoObjeto || !ObjetoID || !UsuarioID) {
-        return res.status(400).json({ error: 'Faltan datos para añadir el Me Gusta.' });
-    }
-
+    const { TipoObjeto, ObjetoID, UsuarioID, Accion } = req.body;
+    console.log(TipoObjeto, ObjetoID, UsuarioID, Accion);
     try {
-        await new Promise((resolve, reject) => {
-            connection.query(
-                'INSERT INTO MeGusta (TipoObjeto, ObjetoID, UsuarioID) VALUES (?, ?, ?)',
-                [TipoObjeto, ObjetoID, UsuarioID],
-                (error, results) => {
-                    if (error) reject(error);
-                    resolve(results);
-                }
-            );
-        });
-        res.status(201).json({ message: 'Me gusta añadido exitosamente.' });
+        let mensaje = '';
+        if (Accion === 'like') {
+            await new Promise((resolve, reject) => {
+                connection.query(
+                    'INSERT INTO MeGusta (TipoObjeto, ObjetoID, UsuarioID) VALUES (?, ?, ?)',
+                    [TipoObjeto, ObjetoID, UsuarioID],
+                    (error, results) => {
+                        if (error) reject(error);
+                        resolve(results);
+                    }
+                );
+            });
+
+            mensaje = 'Me gusta añadido exitosamente.';
+        } else if (Accion === 'dislike') {
+
+             await new Promise((resolve, reject) => {
+                 connection.query(
+                     'DELETE FROM MeGusta WHERE TipoObjeto = ? AND ObjetoID = ? AND UsuarioID = ?',
+                     [TipoObjeto, ObjetoID, UsuarioID],
+                     (error, results) => {
+                         if (error) reject(error);
+                         resolve(results);
+                     }
+                 );
+             });
+
+            mensaje = 'Dislike procesado exitosamente.';
+        } else {
+            res.status(400).json({ error: 'Accion no válida.' });
+            return;
+        }
+        res.status(201).json({ message: mensaje });
     } catch (error) {
-        res.status(500).json({ error: 'Error al añadir el Me Gusta: ' + error });
+        res.status(500).json({ error: 'Error al procesar el Me Gusta: ' + error });
     }
 });
 

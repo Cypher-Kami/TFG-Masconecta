@@ -3,8 +3,8 @@ import axios from 'axios';
 import { Dropdown } from 'react-bootstrap';
 import { useUserContext } from '../../Usercontext';
 import { ToastContainer, toast } from 'react-toastify';
-import MeGustaIcon from '../../Assets/iconos/Publicaciones/Me gusta.svg';
-import ComentarioIcon from '../../Assets/iconos/Publicaciones/Comentario.svg';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faThumbsUp, faThumbsDown, faComment } from '@fortawesome/free-solid-svg-icons';
 import ImagenIcon from '../../Assets/iconos/Crear publicacion/Imagen.svg';
 
 function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
@@ -82,7 +82,6 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
       const imageUrl = URL.createObjectURL(file);
       setPreviewImage(imageUrl);
       setSelectedImageFile(file);
-      console.log(file);
     }
   }
 
@@ -91,6 +90,38 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
     setTempPostContent(currentContent);
   };
 
+  const handleLikeClick = async (publicacionID, liked) => {
+    try {
+        const likeData = {
+            TipoObjeto: 'publicacion',
+            ObjetoID: publicacionID,
+            UsuarioID: id,
+            Accion: liked ? 'dislike' : 'like',
+        };
+
+        const response = await axios.post('http://localhost:3001/publicacion/like', likeData);
+
+        if (response.status >= 200 && response.status < 300) {          
+          setPublicacionesBD(prevPublicaciones => {
+                return prevPublicaciones.map(publi => {
+                    if (publi.ID === publicacionID) {
+                        return {
+                            ...publi,
+                            liked: !liked
+                        };
+                    }
+                    return publi;
+                });
+            });
+        } else {
+            console.error('Error al dar Me gusta:', response.data.error);
+        }
+    } catch (error) {
+        console.error('Error al dar Me gusta:', error);
+    }
+  };
+
+  
   return (
     <>
       {
@@ -165,12 +196,19 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
             </div>
             <div className='card-footer'>
               <button type="button" className='btn btn-light'>
-                <img src={ComentarioIcon} width="16px" height="16px" className='mx-1' alt="Comentario Icono" />
+                <FontAwesomeIcon icon={faComment} className='mx-1' />
                 Comentarios
               </button>
-              <button type="button" className='btn btn-light mx-2'>
-                <img src={MeGustaIcon} width="16px" height="16px" className='mx-1' alt="Me Gusta Icono" />
-                Me gusta
+              <button
+                type="button"
+                className={`btn btn-light mx-2 ${publi.liked ? 'liked' : ''}`}
+                onClick={() => handleLikeClick(publi.ID, publi.liked)}
+              >
+              <FontAwesomeIcon
+                  icon={publi.liked ? faThumbsDown : faThumbsUp}
+                  className='mx-1'
+              />
+                {publi.liked ? 'Ya No Me Gusta' : 'Me Gusta'}
               </button>
             </div>
           <ToastContainer />
