@@ -5,13 +5,16 @@ import { useUserContext } from '../../Usercontext';
 import { ToastContainer, toast } from 'react-toastify';
 import MeGustaIcon from '../../Assets/iconos/Publicaciones/Me gusta.svg';
 import ComentarioIcon from '../../Assets/iconos/Publicaciones/Comentario.svg';
+import ImagenIcon from '../../Assets/iconos/Crear publicacion/Imagen.svg';
 
-function Publicacion( { refrescarPublicaciones, refreshKey } ) {
+function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
   const { userState } = useUserContext();
   const { id, mote, foto } = userState;
   const [publicacionesBD, setPublicacionesBD] = useState([]);
   const [editingPostID, setEditingPostID] = useState(null);
   const [tempPostContent, setTempPostContent] = useState("");
+  const [previewImage, setPreviewImage] = useState(null);
+  const [selectedImageFile, setSelectedImageFile] = useState(null);
 
   useEffect(() => {
     axios.get(`http://localhost:3001/publicacion/publicaciones/${id}`)
@@ -28,8 +31,14 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
       })
       .catch(error => {
         toast.error('Error al obtener las publicaciones:', error);
-      });
+    });
   }, [id, refreshKey]);
+
+  useEffect(() => {
+    if (searchResults && searchResults.publications) {
+      setPublicacionesBD([searchResults.publications]);
+    }
+  }, [searchResults]);
   
   const handleDelete = async (publiID) => {
     try {
@@ -47,9 +56,12 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
 
   const handleUpdate = async () => {
     try {
-      const response = await axios.put(`http://localhost:3001/publicacion/edit-publication/${editingPostID}`, {
-        Contenido: tempPostContent,
-      });
+      let formData = new FormData();
+      formData.append('Contenido', tempPostContent);
+      if (selectedImageFile) {
+        formData.append('Foto', selectedImageFile);
+      }
+      const response = await axios.put(`http://localhost:3001/publicacion/edit-publication/${editingPostID}`, formData);
 
       if (response.status >= 200 && response.status < 300) {
         refrescarPublicaciones();
@@ -63,6 +75,16 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
       toast.error('Error al actualizar la publicación:', error);
     }
   };
+
+  const handleImageChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const imageUrl = URL.createObjectURL(file);
+      setPreviewImage(imageUrl);
+      setSelectedImageFile(file);
+      console.log(file);
+    }
+  }
 
   const startEditing = (postID, currentContent) => {
     setEditingPostID(postID);
@@ -97,21 +119,37 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
                     </Dropdown.Menu>
                   </Dropdown>
                   <button type="submit" className='btn feed-bt px-4 py-2 mx-2 rounded mb-4'>
-                    Seguir
+                    Agregar
                   </button>
                 </div>
               </div>
-              <div className="row">
+              <div className="row px-2">
                 {editingPostID === publi.ID ? (
                   <>
+                    <div className='d-flex justify-content-center align-items-center overflow-hidden'>
+                      {previewImage && <img src={previewImage} height="200px" alt="Preview" />}
+                    </div>
                     <input
                       type="text"
                       className='inputs'
                       value={tempPostContent}
                       onChange={(e) => setTempPostContent(e.target.value)}
                     />
-                    <button className='btn feed-bt' onClick={handleUpdate}>Guardar</button>
-                    <button className='btn feed-bt' onClick={()=> setEditingPostID(null)}>Cancelar</button>
+                    <div className='d-flex justify-content-start'>
+                      <label className="btn btn-light">
+                          <input
+                              type="file"
+                              className='d-none'
+                              onChange={handleImageChange}
+                          />
+                          <img src={ImagenIcon} width="16px" height="16px" className='mx-1' />
+                          Foto
+                      </label>
+                    </div>
+                  <div className='d-flex justify-content-center align-items-center'>
+                    <button className='btn feed-bt mx-2' onClick={handleUpdate}>Guardar</button>
+                    <button className='btn btn-secondary' onClick={()=> setEditingPostID(null)}>Cancelar</button>
+                  </div>
                   </>
                 ) : (
                   <>
@@ -135,6 +173,7 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
                 Me gusta
               </button>
             </div>
+          <ToastContainer />
           </div>
         ))
       }

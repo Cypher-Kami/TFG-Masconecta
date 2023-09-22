@@ -110,4 +110,104 @@ router.delete('/delete-publication/:id', (req, res) => {
   );
 });
 
+router.get('/search', async (req, res) => {
+    const searchTerm = req.query.query;
+
+    try {
+        // Buscar publicaciones que coincidan
+        const [publications] = await new Promise((resolve, reject) => {
+            connection.query(
+                'SELECT * FROM Publicacion WHERE Contenido LIKE ? ORDER BY Fecha_Creacion DESC',
+                [`%${searchTerm}%`],
+                (error, results) => {
+                    if (error) reject(error);
+                    resolve(results);
+                }
+            );
+        });
+
+        // Buscar usuarios que coincidan
+        const [users] = await new Promise((resolve, reject) => {
+            connection.query(
+                'SELECT * FROM Usuario WHERE Mote LIKE ?',
+                [`%${searchTerm}%`],
+                (error, results) => {
+                    if (error) reject(error);
+                    resolve(results);
+                }
+            );
+        });
+
+        res.status(200).json({
+            publications,
+            users
+        });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al realizar la búsqueda: ' + error });
+    }
+});
+
+router.post('/like', async (req, res) => {
+    const { TipoObjeto, ObjetoID, UsuarioID } = req.body;
+
+    if (!TipoObjeto || !ObjetoID || !UsuarioID) {
+        return res.status(400).json({ error: 'Faltan datos para añadir el Me Gusta.' });
+    }
+
+    try {
+        await new Promise((resolve, reject) => {
+            connection.query(
+                'INSERT INTO MeGusta (TipoObjeto, ObjetoID, UsuarioID) VALUES (?, ?, ?)',
+                [TipoObjeto, ObjetoID, UsuarioID],
+                (error, results) => {
+                    if (error) reject(error);
+                    resolve(results);
+                }
+            );
+        });
+        res.status(201).json({ message: 'Me gusta añadido exitosamente.' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al añadir el Me Gusta: ' + error });
+    }
+});
+
+router.post('/create-comment', async (req, res) => {
+    const { Contenido, UsuarioID, PublicacionID } = req.body;
+    const Foto = req.files && req.files.Foto; // Si deseas permitir fotos en los comentarios
+
+    // Objeto para almacenar los datos del comentario
+    let commentData = {
+        Contenido,
+        UsuarioID,
+        PublicacionID
+    };
+
+    try {
+        // Si se incluye una foto en el comentario, cárgala a Cloudinary (si es necesario)
+        if (Foto) {
+            const b64 = Buffer.from(Foto.data).toString("base64");
+            let dataURI = "data:" + Foto.mimetype + ";base64," + b64;
+            const uploadResult = await handleUpload(dataURI);
+            commentData.Foto = uploadResult.secure_url; // Almacena la URL de la foto en el comentario
+        }
+
+        // Inserta el comentario en la base de datos
+        await new Promise((resolve, reject) => {
+            connection.query(
+                'INSERT INTO Comentario (Contenido, Foto, UsuarioID, PublicacionID) VALUES (?, ?, ?, ?)',
+                [commentData.Contenido, commentData.Foto || null, commentData.UsuarioID, commentData.PublicacionID],
+                (error, results) => {
+                    if (error) reject(error);
+                    resolve(results);
+                }
+            );
+        });
+
+        res.status(201).json({ message: 'Comentario creado con éxito.' });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al crear el comentario: ' + error });
+    }
+});
+
+
 module.exports = router;

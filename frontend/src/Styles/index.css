@@ -294,6 +294,11 @@ a {
     color: white !important;
 }
 
+.feed-bt:hover {
+    background-color: #7870F3 !important;
+    color: white !important;
+}
+
 .icon-color-light {
     color: #42107D;
 }

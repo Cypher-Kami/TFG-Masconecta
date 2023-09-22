@@ -1,16 +1,43 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faSearch } from '@fortawesome/free-solid-svg-icons';
+import { ToastContainer, toast } from 'react-toastify';
+import axios from 'axios';
 import Img1 from '../../Assets/fotos_mascotas/gato-5.png';
 import Img2 from '../../Assets/fotos_mascotas/perro-1.png';
 
-function RightContent() {
+function RightContent({setSearchResults}) {
+    const [searchTerm, setSearchTerm] = useState('');
+
+    const handleSearch = async (query) => {
+        try {
+            if (query.trim() === "") {
+                setSearchResults([]);
+                return;
+            }
+            const response = await axios.get('http://localhost:3001/publicacion/search', {
+                params: { query: query }
+            });
+            setSearchResults(response.data);
+        } catch (error) {
+            console.error('Error al buscar las publicaciones:', error);
+        }
+    }
+
   return (
     <div className="container">
         <div className="row">
             <div className="col">
                 <div className="search-input">
-                    <input type="text" placeholder="Buscar..."  className='inputs rounded-pill'/>
+                    <input type="text" 
+                        placeholder="Buscar..."
+                        value={searchTerm} 
+                        onChange={e => {
+                            setSearchTerm(e.target.value);
+                            handleSearch(e.target.value);
+                        }}
+                        className='inputs rounded-pill'
+                    />
                     <FontAwesomeIcon icon={faSearch} className="search-icon" />
                 </div>
             </div>
