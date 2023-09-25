@@ -46,11 +46,12 @@ router.get('/publicaciones/:id', async (req, res) => {
         // Consulta para obtener todas las publicaciones de un usuario y si al usuario le gusta o no
         const publicaciones = await new Promise((resolve, reject) => {
             connection.query(
-                'SELECT DISTINCT p.*, ' +
-                'CASE WHEN mg.ObjetoID IS NULL THEN 0 ELSE 1 END AS liked ' +
+                'SELECT p.*,' + 
+                    ' MAX(CASE WHEN mg.ObjetoID IS NULL THEN 0 ELSE 1 END) AS liked ' +
                 'FROM Publicacion AS p ' +
                 'LEFT JOIN MeGusta AS mg ON p.ID = mg.ObjetoID AND mg.UsuarioID = ? ' +
-                'WHERE p.UsuarioID = ?' +
+                'WHERE p.UsuarioID = ? ' +
+                'GROUP BY p.ID, p.Contenido, p.Foto, p.Fecha_Creacion, p.UsuarioID ' +
                 'ORDER BY p.Fecha_Creacion DESC',
                 [usuarioID, usuarioID],
                 (error, results) => {
@@ -155,49 +156,63 @@ router.get('/search', async (req, res) => {
 
 router.post('/like', async (req, res) => {
     const { TipoObjeto, ObjetoID, UsuarioID, Accion } = req.body;
-    console.log(TipoObjeto, ObjetoID, UsuarioID, Accion);
+
     try {
-        let mensaje = '';
+        const [existingLike] = await new Promise((resolve, reject) => {
+            connection.query(
+                'SELECT * FROM MeGusta WHERE TipoObjeto = ? AND ObjetoID = ? AND UsuarioID = ?',
+                [TipoObjeto, ObjetoID, UsuarioID],
+                (error, results) => {
+                    if (error) reject(error);
+                    resolve(results);
+                }
+            );
+        });
+
         if (Accion === 'like') {
-            await new Promise((resolve, reject) => {
-                connection.query(
-                    'INSERT INTO MeGusta (TipoObjeto, ObjetoID, UsuarioID) VALUES (?, ?, ?)',
-                    [TipoObjeto, ObjetoID, UsuarioID],
-                    (error, results) => {
-                        if (error) reject(error);
-                        resolve(results);
-                    }
-                );
-            });
-
-            mensaje = 'Me gusta añadido exitosamente.';
+            if (existingLike && existingLike.length) {
+                res.status(409).json({ message: 'Ya existe un Me gusta para esta publicación.' });
+            } else {
+                await new Promise((resolve, reject) => {
+                    connection.query(
+                        'INSERT INTO MeGusta (TipoObjeto, ObjetoID, UsuarioID) VALUES (?, ?, ?)',
+                        [TipoObjeto, ObjetoID, UsuarioID],
+                        (error, results) => {
+                            if (error) reject(error);
+                            resolve(results);
+                        }
+                    );
+                });
+                res.status(201).json({ message: 'Me gusta añadido exitosamente.' });
+            }
         } else if (Accion === 'dislike') {
-
-             await new Promise((resolve, reject) => {
-                 connection.query(
-                     'DELETE FROM MeGusta WHERE TipoObjeto = ? AND ObjetoID = ? AND UsuarioID = ?',
-                     [TipoObjeto, ObjetoID, UsuarioID],
-                     (error, results) => {
-                         if (error) reject(error);
-                         resolve(results);
-                     }
-                 );
-             });
-
-            mensaje = 'Dislike procesado exitosamente.';
+            if (existingLike.length) {
+                await new Promise((resolve, reject) => {
+                    connection.query(
+                        'DELETE FROM MeGusta WHERE TipoObjeto = ? AND ObjetoID = ? AND UsuarioID = ?',
+                        [TipoObjeto, ObjetoID, UsuarioID],
+                        (error, results) => {
+                            if (error) reject(error);
+                            resolve(results);
+                        }
+                    );
+                });
+                res.status(200).json({ message: 'Dislike procesado exitosamente.' });
+            } else {
+                res.status(409).json({ message: 'No existe un Me gusta para eliminar.' });
+            }
         } else {
-            res.status(400).json({ error: 'Accion no válida.' });
-            return;
+            res.status(400).json({ message: 'Accion no válida.' });
         }
-        res.status(201).json({ message: mensaje });
     } catch (error) {
         res.status(500).json({ error: 'Error al procesar el Me Gusta: ' + error });
     }
 });
 
+
 router.post('/create-comment', async (req, res) => {
     const { Contenido, UsuarioID, PublicacionID } = req.body;
-    const Foto = req.files && req.files.Foto; // Si deseas permitir fotos en los comentarios
+    const Foto = req.files && req.files.Foto;
 
     // Objeto para almacenar los datos del comentario
     let commentData = {
@@ -207,15 +222,13 @@ router.post('/create-comment', async (req, res) => {
     };
 
     try {
-        // Si se incluye una foto en el comentario, cárgala a Cloudinary (si es necesario)
         if (Foto) {
             const b64 = Buffer.from(Foto.data).toString("base64");
             let dataURI = "data:" + Foto.mimetype + ";base64," + b64;
             const uploadResult = await handleUpload(dataURI);
-            commentData.Foto = uploadResult.secure_url; // Almacena la URL de la foto en el comentario
+            commentData.Foto = uploadResult.secure_url;
         }
 
-        // Inserta el comentario en la base de datos
         await new Promise((resolve, reject) => {
             connection.query(
                 'INSERT INTO Comentario (Contenido, Foto, UsuarioID, PublicacionID) VALUES (?, ?, ?, ?)',

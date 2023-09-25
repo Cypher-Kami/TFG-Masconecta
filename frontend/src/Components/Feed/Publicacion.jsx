@@ -25,6 +25,7 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
           Contenido: item.Contenido,
           Foto: item.Foto,
           UsuarioID: item.UsuarioID,
+          liked: item.liked === 1
         }
       ));
         setPublicacionesBD(nuevasPublicaciones);
@@ -208,7 +209,7 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
                   icon={publi.liked ? faThumbsDown : faThumbsUp}
                   className='mx-1'
               />
-                {publi.liked ? 'Ya No Me Gusta' : 'Me Gusta'}
+                {publi.liked ? 'No me Gusta' : 'Me Gusta'}
               </button>
             </div>
           <ToastContainer />
