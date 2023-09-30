@@ -246,5 +246,72 @@ router.post('/create-comment', async (req, res) => {
     }
 });
 
+//Endpoint para obtener todos los comentarios de una publicación específica
+router.get('/publicaciones/:id/comentarios', async (req, res) => {
+    const publicacionID = req.params.id;
+
+    try {
+        const comentarios = await new Promise((resolve, reject) => {
+            connection.query(
+                'SELECT c.* ' +
+                'FROM Comentario AS c ' +
+                'WHERE c.PublicacionID = ? ' +
+                'ORDER BY c.Fecha_Creacion DESC',
+                [publicacionID],
+                (error, results) => {
+                    if (error) reject(error);
+                    resolve(results);
+                }
+            );
+        });
+
+        res.status(200).json(comentarios);
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener los comentarios: ' + error });
+    }
+});
+
+router.put('/comentarios/:id', async (req, res) => {
+    const comentarioID = req.params.id;
+    const { Contenido, Foto } = req.body;
+
+    try {
+        await new Promise((resolve, reject) => {
+            connection.query(
+                'UPDATE Comentario SET Contenido = ?, Foto = ? WHERE ID = ?',
+                [Contenido, Foto, comentarioID],
+                (error, results) => {
+                    if (error) reject(error);
+                    resolve(results);
+                }
+            );
+        });
+
+        res.status(200).json({ message: "Comentario actualizado con éxito." });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al actualizar el comentario: ' + error });
+    }
+});
+
+router.delete('/comentarios/:id', async (req, res) => {
+    const comentarioID = req.params.id;
+
+    try {
+        await new Promise((resolve, reject) => {
+            connection.query(
+                'DELETE FROM Comentario WHERE ID = ?',
+                [comentarioID],
+                (error, results) => {
+                    if (error) reject(error);
+                    resolve(results);
+                }
+            );
+        });
+
+        res.status(200).json({ message: "Comentario eliminado con éxito." });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al eliminar el comentario: ' + error });
+    }
+});
 
 module.exports = router;

@@ -1,7 +1,8 @@
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useState, useEffect } from 'react'
 import axios from 'axios';
 import { Dropdown } from 'react-bootstrap';
 import { useUserContext } from '../../Usercontext';
+import PostComment from './Comments/PostComment'
 import { ToastContainer, toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faThumbsUp, faThumbsDown, faComment } from '@fortawesome/free-solid-svg-icons';
@@ -15,6 +16,7 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
   const [tempPostContent, setTempPostContent] = useState("");
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedImageFile, setSelectedImageFile] = useState(null);
+  const [mostrarPostComment, setMostrarPostComment] = useState(false);
 
   useEffect(() => {
     axios.get(`http://localhost:3001/publicacion/publicaciones/${id}`)
@@ -122,6 +124,9 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
     }
   };
 
+  const handleShow = () => {
+    setMostrarPostComment(prevMostrar => !prevMostrar);
+  };
   
   return (
     <>
@@ -196,7 +201,7 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
               </div>
             </div>
             <div className='card-footer'>
-              <button type="button" className='btn btn-light'>
+              <button type="button" className='btn btn-light' onClick={handleShow}>
                 <FontAwesomeIcon icon={faComment} className='mx-1' />
                 Comentarios
               </button>
@@ -211,6 +216,7 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
               />
                 {publi.liked ? 'No me Gusta' : 'Me Gusta'}
               </button>
+              {mostrarPostComment && <PostComment postID={publi.ID} userID={id} userMote={mote} userFoto={foto} />}
             </div>
           <ToastContainer />
           </div>
