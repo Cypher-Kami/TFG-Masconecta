@@ -12,6 +12,26 @@ function PostComment({postID, userID, userMote, userFoto}) {
     const [showCommentEmojiPicker, setShowCommentEmojiPicker] = useState(false);
     const [comentario, setComentario] = useState("");
     const [fotoComment, setFotoComment] = useState(null);
+    const [comments, setComments] = useState([]);
+
+    const loadComments = () => {
+        axios.get(`http://localhost:3001/publicacion/publicaciones/${postID}/comentarios`, {
+            params: {
+              UsuarioID: userID
+            }
+        })
+        .then(response => {
+            const commentsResponse = response.data;
+            setComments(commentsResponse);
+        })
+        .catch(error => {
+            console.error('Error al obtener los comentarios:', error);
+        });
+    }
+
+    useEffect(() => {
+        loadComments();
+    }, [postID, userID]);
 
     const handleCommentImageChange = (event) => {
         const file = event.target.files[0];
@@ -33,7 +53,7 @@ function PostComment({postID, userID, userMote, userFoto}) {
         const response = await axios.post('http://localhost:3001/publicacion/create-comment', formData);
         if (response.status >= 200 && response.status < 300) {
             setComentario("");
-            //refrescarComentario();
+            loadComments();
             toast.success('Comentario exitoso');
         } else {
             toast.error('Error al comentar');
@@ -93,7 +113,7 @@ function PostComment({postID, userID, userMote, userFoto}) {
                 </div>
             </div>
         </form>
-        < CommentsList postID={postID} />
+        < CommentsList postID={postID} userID={userID} comments={comments} loadComments={loadComments}/>
     </>
   )
 }

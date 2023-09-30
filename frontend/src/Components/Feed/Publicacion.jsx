@@ -2,11 +2,12 @@ import React, { useState, useEffect } from 'react'
 import axios from 'axios';
 import { Dropdown } from 'react-bootstrap';
 import { useUserContext } from '../../Usercontext';
-import PostComment from './Comments/PostComment'
+import PostComment from './Comments/PostComment';
 import { ToastContainer, toast } from 'react-toastify';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faThumbsUp, faThumbsDown, faComment } from '@fortawesome/free-solid-svg-icons';
 import ImagenIcon from '../../Assets/iconos/Crear publicacion/Imagen.svg';
+import ConfiguracionIcon from '../../Assets/iconos/Configuracion.svg';
 
 function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
   const { userState } = useUserContext();
@@ -16,7 +17,7 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
   const [tempPostContent, setTempPostContent] = useState("");
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedImageFile, setSelectedImageFile] = useState(null);
-  const [mostrarPostComment, setMostrarPostComment] = useState(false);
+  const [postToShowComments, setPostToShowComments] = useState(null);
 
   useEffect(() => {
     axios.get(`http://localhost:3001/publicacion/publicaciones/${id}`)
@@ -124,8 +125,12 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
     }
   };
 
-  const handleShow = () => {
-    setMostrarPostComment(prevMostrar => !prevMostrar);
+  const handleShow = (postID) => {
+    if (postToShowComments === postID) {
+      setPostToShowComments(null);
+    } else {
+      setPostToShowComments(postID);
+    }
   };
   
   return (
@@ -148,7 +153,7 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
                 <div className='col-2 d-flex justify-content-end'>
                   <Dropdown>
                     <Dropdown.Toggle variant="light" id="dropdown-basic">
-                      ...
+                      <img src={ConfiguracionIcon} width="16px" height="16px" className='mx-1' />
                     </Dropdown.Toggle>
                     <Dropdown.Menu>
                       <Dropdown.Item href="#" onClick={() => startEditing(publi.ID, publi.Contenido)}>Editar</Dropdown.Item>
@@ -201,7 +206,7 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
               </div>
             </div>
             <div className='card-footer'>
-              <button type="button" className='btn btn-light' onClick={handleShow}>
+              <button type="button" className='btn btn-light' onClick={() => handleShow(publi.ID)}>
                 <FontAwesomeIcon icon={faComment} className='mx-1' />
                 Comentarios
               </button>
@@ -216,7 +221,7 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
               />
                 {publi.liked ? 'No me Gusta' : 'Me Gusta'}
               </button>
-              {mostrarPostComment && <PostComment postID={publi.ID} userID={id} userMote={mote} userFoto={foto} />}
+              {postToShowComments === publi.ID && <PostComment postID={publi.ID} userID={id} userMote={mote} userFoto={foto} />}
             </div>
           <ToastContainer />
           </div>

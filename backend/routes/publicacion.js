@@ -156,9 +156,9 @@ router.get('/search', async (req, res) => {
 
 router.post('/like', async (req, res) => {
     const { TipoObjeto, ObjetoID, UsuarioID, Accion } = req.body;
-
+    console.log("SQL Parameters:", TipoObjeto, ObjetoID, UsuarioID);
     try {
-        const [existingLike] = await new Promise((resolve, reject) => {
+        const existingLike = await new Promise((resolve, reject) => {
             connection.query(
                 'SELECT * FROM MeGusta WHERE TipoObjeto = ? AND ObjetoID = ? AND UsuarioID = ?',
                 [TipoObjeto, ObjetoID, UsuarioID],
@@ -186,7 +186,7 @@ router.post('/like', async (req, res) => {
                 res.status(201).json({ message: 'Me gusta añadido exitosamente.' });
             }
         } else if (Accion === 'dislike') {
-            if (existingLike.length) {
+            if (existingLike && existingLike.length) {
                 await new Promise((resolve, reject) => {
                     connection.query(
                         'DELETE FROM MeGusta WHERE TipoObjeto = ? AND ObjetoID = ? AND UsuarioID = ?',
@@ -249,15 +249,17 @@ router.post('/create-comment', async (req, res) => {
 //Endpoint para obtener todos los comentarios de una publicación específica
 router.get('/publicaciones/:id/comentarios', async (req, res) => {
     const publicacionID = req.params.id;
-
+    const usuarioID = req.query.UsuarioID;
     try {
         const comentarios = await new Promise((resolve, reject) => {
             connection.query(
-                'SELECT c.* ' +
+                'SELECT c.*, ' +
+                'CASE WHEN mg.ID IS NOT NULL THEN 1 ELSE 0 END AS liked ' + 
                 'FROM Comentario AS c ' +
+                'LEFT JOIN MeGusta AS mg ON mg.ObjetoID = c.ID AND mg.TipoObjeto = "comentario" AND mg.UsuarioID = ? ' +
                 'WHERE c.PublicacionID = ? ' +
                 'ORDER BY c.Fecha_Creacion DESC',
-                [publicacionID],
+                [usuarioID, publicacionID],
                 (error, results) => {
                     if (error) reject(error);
                     resolve(results);
