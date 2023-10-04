@@ -8,7 +8,7 @@ import VideoIcon from '../../Assets/iconos/Crear publicacion/Video.svg';
 import ImagenIcon from '../../Assets/iconos/Crear publicacion/Imagen.svg';
 import EventoIcon from '../../Assets/iconos/Crear publicacion/Evento.svg';
 
-function CenterContent({searchResults}) {
+function CenterContent() {
     const { userState, dispatch } = useUserContext();
     const id = userState.id  || 0;
     const [publicacion, setPublicacion] = useState("");
@@ -163,7 +163,6 @@ function CenterContent({searchResults}) {
             <Publicacion 
                 refreshKey={refreshKey} 
                 refrescarPublicaciones={refrescarPublicaciones} 
-                searchResults={searchResults}
             />
         <ToastContainer />
         </div>

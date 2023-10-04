@@ -11,7 +11,6 @@ import 'react-toastify/dist/ReactToastify.css';
 function FeedContainer() {
   const navigate = useNavigate();
   const { userState, dispatch } = useUserContext();
-  const [searchResults, setSearchResults] = useState([]);
   
   return (
     <div className='container-fluid pt-3 login-container'>
@@ -22,13 +21,13 @@ function FeedContainer() {
         </div>
         <div className='col-md-7'>
           {userState.currentComponent === 'Home' ? (
-              <CenterContent searchResults={searchResults} />
+              <CenterContent />
             ) : (
               <Profile />
             )}
         </div>
         <div className='col-md-3'>
-          <RightContent setSearchResults={setSearchResults} />
+          <RightContent />
         </div>
       </div>
     </div>

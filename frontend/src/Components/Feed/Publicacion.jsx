@@ -9,7 +9,7 @@ import { faThumbsUp, faThumbsDown, faComment } from '@fortawesome/free-solid-svg
 import ImagenIcon from '../../Assets/iconos/Crear publicacion/Imagen.svg';
 import ConfiguracionIcon from '../../Assets/iconos/Configuracion.svg';
 
-function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
+function Publicacion( { refrescarPublicaciones, refreshKey } ) {
   const { userState } = useUserContext();
   const { id, mote, foto } = userState;
   const [publicacionesBD, setPublicacionesBD] = useState([]);
@@ -37,12 +37,6 @@ function Publicacion( { searchResults, refrescarPublicaciones, refreshKey } ) {
         toast.error('Error al obtener las publicaciones:', error);
     });
   }, [id, refreshKey]);
-
-  useEffect(() => {
-    if (searchResults && searchResults.publications) {
-      setPublicacionesBD([searchResults.publications]);
-    }
-  }, [searchResults]);
   
   const handleDelete = async (publiID) => {
     try {

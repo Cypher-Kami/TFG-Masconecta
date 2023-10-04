@@ -96,4 +96,76 @@ router.put('/editar-perfil/:userId', async (req, res) => {
   }
 });
 
+router.post('/send-friend-request', async (req, res) => {
+  const { solicitanteID, solicitadoID } = req.body;
+  try {
+      await new Promise((resolve, reject) => {
+          connection.query(
+              'INSERT INTO SolicitudAmistad (solicitanteID, solicitadoID) VALUES (?, ?)',
+              [solicitanteID, solicitadoID],
+              (error, results) => {
+                  if (error) reject(error);
+                  resolve(results);
+              }
+          );
+      });
+      res.status(200).json({ message: "Solicitud de amistad enviada con éxito." });
+  } catch (error) {
+      res.status(500).json({ error: 'Error al enviar la solicitud de amistad: ' + error });
+  }
+});
+
+router.post('/accept-friend-request', async (req, res) => {
+  const { solicitudID, solicitanteID, solicitadoID } = req.body;
+  try {
+      // Primero, inserta en la tabla de amigos
+      await new Promise((resolve, reject) => {
+          connection.query(
+              'INSERT INTO Amigo (UsuarioID1, UsuarioID2) VALUES (?, ?)',
+              [solicitanteID, solicitadoID],
+              (error, results) => {
+                  if (error) reject(error);
+                  resolve(results);
+              }
+          );
+      });
+      // elimina la solicitud de la tabla de solicitudes pendientes
+      await new Promise((resolve, reject) => {
+          connection.query(
+              'DELETE FROM SolicitudAmistad WHERE ID = ?',
+              [solicitudID],
+              (error, results) => {
+                  if (error) reject(error);
+                  resolve(results);
+              }
+          );
+      });
+      res.status(200).json({ message: "Solicitud de amistad aceptada con éxito." });
+  } catch (error) {
+      res.status(500).json({ error: 'Error al aceptar la solicitud de amistad: ' + error });
+  }
+});
+
+router.post('/reject-friend-request', async (req, res) => {
+  const { solicitudID } = req.body;
+
+  try {
+      // Elimina la solicitud de la tabla de solicitudes pendientes
+      await new Promise((resolve, reject) => {
+          connection.query(
+              'DELETE FROM SolicitudAmistad WHERE ID = ?',
+              [solicitudID],
+              (error, results) => {
+                  if (error) reject(error);
+                  resolve(results);
+              }
+          );
+      });
+
+      res.status(200).json({ message: "Solicitud de amistad rechazada con éxito." });
+  } catch (error) {
+      res.status(500).json({ error: 'Error al rechazar la solicitud de amistad: ' + error });
+  }
+});
+
 module.exports = router;

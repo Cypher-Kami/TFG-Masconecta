@@ -46,14 +46,19 @@ router.get('/publicaciones/:id', async (req, res) => {
         // Consulta para obtener todas las publicaciones de un usuario y si al usuario le gusta o no
         const publicaciones = await new Promise((resolve, reject) => {
             connection.query(
-                'SELECT p.*,' + 
+                'SELECT p.*, ' + 
                     ' MAX(CASE WHEN mg.ObjetoID IS NULL THEN 0 ELSE 1 END) AS liked ' +
                 'FROM Publicacion AS p ' +
                 'LEFT JOIN MeGusta AS mg ON p.ID = mg.ObjetoID AND mg.UsuarioID = ? ' +
                 'WHERE p.UsuarioID = ? ' +
+                'OR p.UsuarioID IN ( ' +
+                    'SELECT UsuarioID1 FROM Amigo WHERE UsuarioID2 = ? ' +
+                    'UNION ' +
+                    'SELECT UsuarioID2 FROM Amigo WHERE UsuarioID1 = ? ' +
+                ') ' +
                 'GROUP BY p.ID, p.Contenido, p.Foto, p.Fecha_Creacion, p.UsuarioID ' +
                 'ORDER BY p.Fecha_Creacion DESC',
-                [usuarioID, usuarioID],
+                [usuarioID, usuarioID, usuarioID, usuarioID],
                 (error, results) => {
                     if (error) reject(error);
                     resolve(results);
@@ -119,10 +124,11 @@ router.delete('/delete-publication/:id', (req, res) => {
 
 router.get('/search', async (req, res) => {
     const searchTerm = req.query.query;
+    const currentUserID = req.query.userID;
 
     try {
         // Buscar publicaciones que coincidan
-        const [publications] = await new Promise((resolve, reject) => {
+        /*const [publications] = await new Promise((resolve, reject) => {
             connection.query(
                 'SELECT * FROM Publicacion WHERE Contenido LIKE ? ORDER BY Fecha_Creacion DESC',
                 [`%${searchTerm}%`],
@@ -131,13 +137,24 @@ router.get('/search', async (req, res) => {
                     resolve(results);
                 }
             );
-        });
+        });*/
 
         // Buscar usuarios que coincidan
         const [users] = await new Promise((resolve, reject) => {
             connection.query(
-                'SELECT * FROM Usuario WHERE Mote LIKE ?',
-                [`%${searchTerm}%`],
+                `
+                SELECT u.*, 
+                    CASE 
+                        WHEN sa.ID IS NULL THEN 'no enviado'
+                        WHEN sa.estado = 'pendiente' THEN 'pendiente'
+                        ELSE 'aceptado'
+                    END AS estado_solicitud
+                FROM Usuario AS u
+                LEFT JOIN SolicitudAmistad AS sa ON (u.ID = sa.solicitanteID AND ? = sa.solicitadoID) 
+                                              OR (u.ID = sa.solicitadoID AND ? = sa.solicitanteID)
+                WHERE u.Mote LIKE ?
+                `,
+                [currentUserID, currentUserID, `%${searchTerm}%`],
                 (error, results) => {
                     if (error) reject(error);
                     resolve(results);
@@ -146,7 +163,6 @@ router.get('/search', async (req, res) => {
         });
 
         res.status(200).json({
-            publications,
             users
         });
     } catch (error) {
