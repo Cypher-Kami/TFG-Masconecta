@@ -324,3 +324,8 @@ a {
 .date-style {
     color: #6c757d;
 }
+
+.custom-popover {
+    width: 600px;
+    max-height: 300px;
+}

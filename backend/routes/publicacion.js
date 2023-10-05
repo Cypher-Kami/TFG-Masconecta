@@ -46,9 +46,12 @@ router.get('/publicaciones/:id', async (req, res) => {
         // Consulta para obtener todas las publicaciones de un usuario y si al usuario le gusta o no
         const publicaciones = await new Promise((resolve, reject) => {
             connection.query(
-                'SELECT p.*, ' + 
-                    ' MAX(CASE WHEN mg.ObjetoID IS NULL THEN 0 ELSE 1 END) AS liked ' +
+                'SELECT p.*, ' +
+                'u.Foto AS UsuarioFoto, ' + 
+                'u.Mote AS UsuarioMote, ' +
+                'MAX(CASE WHEN mg.ObjetoID IS NULL THEN 0 ELSE 1 END) AS liked ' +
                 'FROM Publicacion AS p ' +
+                'JOIN Usuario AS u ON p.UsuarioID = u.ID ' +
                 'LEFT JOIN MeGusta AS mg ON p.ID = mg.ObjetoID AND mg.UsuarioID = ? ' +
                 'WHERE p.UsuarioID = ? ' +
                 'OR p.UsuarioID IN ( ' +
@@ -56,7 +59,7 @@ router.get('/publicaciones/:id', async (req, res) => {
                     'UNION ' +
                     'SELECT UsuarioID2 FROM Amigo WHERE UsuarioID1 = ? ' +
                 ') ' +
-                'GROUP BY p.ID, p.Contenido, p.Foto, p.Fecha_Creacion, p.UsuarioID ' +
+                'GROUP BY p.ID, p.Contenido, p.Foto, p.Fecha_Creacion, p.UsuarioID, u.Foto, u.Mote ' +
                 'ORDER BY p.Fecha_Creacion DESC',
                 [usuarioID, usuarioID, usuarioID, usuarioID],
                 (error, results) => {
@@ -127,34 +130,21 @@ router.get('/search', async (req, res) => {
     const currentUserID = req.query.userID;
 
     try {
-        // Buscar publicaciones que coincidan
-        /*const [publications] = await new Promise((resolve, reject) => {
-            connection.query(
-                'SELECT * FROM Publicacion WHERE Contenido LIKE ? ORDER BY Fecha_Creacion DESC',
-                [`%${searchTerm}%`],
-                (error, results) => {
-                    if (error) reject(error);
-                    resolve(results);
-                }
-            );
-        });*/
-
-        // Buscar usuarios que coincidan
         const [users] = await new Promise((resolve, reject) => {
             connection.query(
                 `
                 SELECT u.*, 
                     CASE 
-                        WHEN sa.ID IS NULL THEN 'no enviado'
-                        WHEN sa.estado = 'pendiente' THEN 'pendiente'
-                        ELSE 'aceptado'
+                        WHEN a.ID IS NOT NULL THEN 'amigo'
+                        WHEN sa.Estado IS NULL THEN 'no enviado'
+                        ELSE sa.Estado
                     END AS estado_solicitud
                 FROM Usuario AS u
-                LEFT JOIN SolicitudAmistad AS sa ON (u.ID = sa.solicitanteID AND ? = sa.solicitadoID) 
-                                              OR (u.ID = sa.solicitadoID AND ? = sa.solicitanteID)
+                LEFT JOIN Amigo AS a ON (u.ID = a.UsuarioID1 AND ? = a.UsuarioID2) OR (u.ID = a.UsuarioID2 AND ? = a.UsuarioID1)
+                LEFT JOIN SolicitudAmistad AS sa ON (u.ID = sa.SolicitanteID AND ? = sa.SolicitadoID) OR (u.ID = sa.SolicitadoID AND ? = sa.SolicitanteID)
                 WHERE u.Mote LIKE ?
                 `,
-                [currentUserID, currentUserID, `%${searchTerm}%`],
+                [currentUserID, currentUserID, currentUserID, currentUserID, `%${searchTerm}%`],
                 (error, results) => {
                     if (error) reject(error);
                     resolve(results);
@@ -270,9 +260,12 @@ router.get('/publicaciones/:id/comentarios', async (req, res) => {
         const comentarios = await new Promise((resolve, reject) => {
             connection.query(
                 'SELECT c.*, ' +
-                'CASE WHEN mg.ID IS NOT NULL THEN 1 ELSE 0 END AS liked ' + 
+                'u.Foto AS UsuarioFoto, ' + 
+                'u.Mote AS UsuarioMote, ' + 
+                'CASE WHEN mg.ID IS NOT NULL THEN 1 ELSE 0 END AS liked ' +
                 'FROM Comentario AS c ' +
-                'LEFT JOIN MeGusta AS mg ON mg.ObjetoID = c.ID AND mg.TipoObjeto = "comentario" AND mg.UsuarioID = ? ' +
+                'LEFT JOIN MeGusta AS mg ON mg.ObjetoID = c.ID AND mg.TipoObjeto = \'comentario\' AND mg.UsuarioID = ? ' +
+                'LEFT JOIN Usuario AS u ON c.UsuarioID = u.ID ' +
                 'WHERE c.PublicacionID = ? ' +
                 'ORDER BY c.Fecha_Creacion DESC',
                 [usuarioID, publicacionID],

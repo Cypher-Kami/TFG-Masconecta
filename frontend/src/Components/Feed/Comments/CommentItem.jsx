@@ -116,8 +116,15 @@ function CommentItem({ comment, userID , index, totalComments, loadComments }) {
                 <button className="btn feed-bt mx-1" onClick={handleUpdate}>Guardar</button>
                 <button className="btn btn-secondary" onClick={() => setEditingCommentID(null)}>Cancelar</button>
             </div>
-        ) : (
-            <p className="flex-grow-1 m-0">{comment.Contenido}</p>
+        ) : (<>
+              <div className="d-flex flex-column align-items-start">
+                  <div className="d-flex align-items-center mb-2">
+                      <img src={comment.UsuarioFoto} width="40" height="40" className="rounded-circle me-2" />
+                      <strong>{comment.UsuarioMote}</strong>&nbsp;dice:
+                  </div>
+                  <p className="flex-grow-1 m-0">{comment.Contenido}</p>
+              </div>
+            </>
         )}
 
         <div className="ml-3 d-flex align-items-center">
@@ -133,15 +140,19 @@ function CommentItem({ comment, userID , index, totalComments, loadComments }) {
                 {likeStatus === LIKE_STATUS.LIKED ? 'No me Gusta' : 'Me Gusta'}
             </button>
 
-            <Dropdown className="ml-2">
-                <Dropdown.Toggle variant="light" id="dropdown-basic">
-                    <img src={ConfiguracionIcon} width="16px" height="16px" className='mx-1' />
-                </Dropdown.Toggle>
-                <Dropdown.Menu>
-                    <Dropdown.Item href="#" onClick={() => startEditing(comment.ID, comment.Contenido, comment.Foto)}>Editar</Dropdown.Item>
-                    <Dropdown.Item href="#" onClick={() => handleDelete(comment.ID)}>Eliminar</Dropdown.Item>
-                </Dropdown.Menu>
-            </Dropdown>
+            {
+              comment.UsuarioID === userID && (
+                <Dropdown className="ml-2">
+                    <Dropdown.Toggle variant="light" id="dropdown-basic">
+                        <img src={ConfiguracionIcon} width="16px" height="16px" className='mx-1' />
+                    </Dropdown.Toggle>
+                    <Dropdown.Menu>
+                        <Dropdown.Item href="#" onClick={() => startEditing(comment.ID, comment.Contenido, comment.Foto)}>Editar</Dropdown.Item>
+                        <Dropdown.Item href="#" onClick={() => handleDelete(comment.ID)}>Eliminar</Dropdown.Item>
+                    </Dropdown.Menu>
+                </Dropdown>
+              )
+            }
         </div>
     </div>
     {comment.Foto && <img src={comment.Foto} alt="Imagen del comentario" height="100px" className="mt-2" />}

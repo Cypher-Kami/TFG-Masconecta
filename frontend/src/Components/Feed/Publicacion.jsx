@@ -28,6 +28,8 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
           Contenido: item.Contenido,
           Foto: item.Foto,
           UsuarioID: item.UsuarioID,
+          UsuarioFoto: item.UsuarioFoto,
+          UsuarioMote: item.UsuarioMote,
           liked: item.liked === 1
         }
       ));
@@ -136,15 +138,16 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
               <div className='row'>
                 <div className='col-10 d-flex align-items-center'>
                   <img
-                    src={foto}
+                    src={publi.UsuarioFoto}
                     alt="Imagen del usuario"
                     className="rounded-circle me-2"
                     width="50"
                     height="50"
                   />
-                  <h4 className="mx-2">{mote}</h4>
+                  <h4 className="mx-2">{publi.UsuarioMote}</h4>
                 </div>
                 <div className='col-2 d-flex justify-content-end'>
+                {publi.UsuarioID === id && (
                   <Dropdown>
                     <Dropdown.Toggle variant="light" id="dropdown-basic">
                       <img src={ConfiguracionIcon} width="16px" height="16px" className='mx-1' />
@@ -154,6 +157,7 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
                       <Dropdown.Item href="#" onClick={() => handleDelete(publi.ID)}>Eliminar</Dropdown.Item>
                     </Dropdown.Menu>
                   </Dropdown>
+                )}
                   <button type="submit" className='btn feed-bt px-4 py-2 mx-2 rounded mb-4'>
                     Agregar
                   </button>

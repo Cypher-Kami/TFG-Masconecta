@@ -28,7 +28,6 @@ function RightContent() {
                 const usersArray = Array.isArray(response.data.users) ? response.data.users : [response.data.users];
                 setSearchResults(usersArray);
                 setShowModal(true);
-                console.log(showModal);
             } else {
                 toast.warn('No se encontraron resultados para la búsqueda.');
             }
