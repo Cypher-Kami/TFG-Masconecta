@@ -153,7 +153,6 @@ router.post('/accept-friend-request', async (req, res) => {
             }
         );
       });
-      console.log(rows);
       if (!rows || rows.length === 0) {
           return res.status(400).json({ error: 'Solicitud no encontrada.' });
       }
@@ -171,6 +170,18 @@ router.post('/accept-friend-request', async (req, res) => {
               }
           );
       });
+      
+      //Agrega una notificación
+      await new Promise((resolve, reject) => {
+        connection.query(
+            'INSERT INTO Notificaciones (UsuarioID, Tipo, ReferenciaID) VALUES (?, "solicitud_amistad", ?)',
+            [solicitanteID, solicitudID],
+            (error, results) => {
+                if (error) reject(error);
+                resolve(results);
+            }
+        );
+    });
       
       // Elimina la solicitud de la tabla de solicitudes pendientes
       await new Promise((resolve, reject) => {

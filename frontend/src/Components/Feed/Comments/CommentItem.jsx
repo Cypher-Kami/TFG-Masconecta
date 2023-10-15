@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Dropdown } from 'react-bootstrap';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faThumbsUp, faThumbsDown } from '@fortawesome/free-solid-svg-icons';
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 import { ToastContainer, toast } from 'react-toastify';
 import ConfiguracionIcon from '../../../Assets/iconos/Configuracion.svg';
+import disLikeIcon from '../../../Assets/iconos/Crear publicacion/ME GUSTA SELECT.svg';
+import LikeIcon from '../../../Assets/iconos/Crear publicacion/ME GUSTA.svg';
 
 function CommentItem({ comment, userID , index, totalComments, loadComments }) {
   const [editingCommentID, setEditingCommentID] = useState(null);
@@ -132,12 +134,9 @@ function CommentItem({ comment, userID , index, totalComments, loadComments }) {
                 type="button"
                 className={`btn btn-light mx-1 ${likeStatus === LIKE_STATUS.LIKED ? 'liked' : ''}`}
                 onClick={() => handleLikeClick(comment.ID)}
-            >
-                <FontAwesomeIcon
-                    icon={likeStatus === LIKE_STATUS.LIKED ? faThumbsDown : faThumbsUp}
-                    className='mx-1'
-                />
-                {likeStatus === LIKE_STATUS.LIKED ? 'No me Gusta' : 'Me Gusta'}
+            >   
+              <img src={likeStatus === LIKE_STATUS.LIKED ? disLikeIcon : LikeIcon} width="16px" height="16px" className='mx-1' />
+              {likeStatus === LIKE_STATUS.LIKED ? 'No me Gusta' : 'Me Gusta'}
             </button>
 
             {

@@ -215,6 +215,24 @@ router.post('/like', async (req, res) => {
     }
 });
 
+router.get('/likes-count', async (req, res) => {
+    const { TipoObjeto, ObjetoID } = req.query;
+    try {
+        const count = await new Promise((resolve, reject) => {
+            connection.query(
+                'SELECT COUNT(*) as likesCount FROM MeGusta WHERE TipoObjeto = ? AND ObjetoID = ?',
+                [TipoObjeto, ObjetoID],
+                (error, results) => {
+                    if (error) reject(error);
+                    resolve(results[0].likesCount);
+                }
+            );
+        });
+        res.status(200).json({ likesCount: count });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener la cuenta de Me Gusta: ' + error });
+    }
+});
 
 router.post('/create-comment', async (req, res) => {
     const { Contenido, UsuarioID, PublicacionID } = req.body;

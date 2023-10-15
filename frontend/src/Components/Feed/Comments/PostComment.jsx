@@ -3,7 +3,8 @@ import axios from 'axios';
 import { useUserContext } from '../../../Usercontext';
 import CommentsList from './CommentsList';
 import { ToastContainer, toast } from 'react-toastify';
-import { Picker } from 'emoji-mart';
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 import ImagenIcon from '../../../Assets/iconos/Crear publicacion/Imagen.svg';
 
 function PostComment({postID, userID, userMote, userFoto}) {
@@ -64,9 +65,8 @@ function PostComment({postID, userID, userMote, userFoto}) {
         }
     };
 
-    const addCommentEmoji = (e) => {
-        let emoji = e.native;
-        setComentario((prev) => prev + emoji);
+    const addCommentEmoji = (emoji) => {
+        setComentario((prev) => prev + emoji.native);
     }; 
 
   return (
@@ -105,7 +105,9 @@ function PostComment({postID, userID, userMote, userFoto}) {
                         <button type="button" className='btn btn-light btn-circle mb-4 mx-2' onClick={() => setShowCommentEmojiPicker(!showCommentEmojiPicker)}>
                             😀
                         </button>
-                        {showCommentEmojiPicker && <Picker onSelect={addCommentEmoji} />}
+                        {showCommentEmojiPicker && <div style={{ position: 'absolute', bottom: '2px', right: '190px' }}>
+                                                        <Picker data={data} onEmojiSelect={addCommentEmoji} navPosition="bottom" perLine="6" theme="light" />
+                                                    </div>}
                         <button type="submit" className='btn feed-bt px-4 py-2 rounded mb-4'>
                             Comentar
                         </button>

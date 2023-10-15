@@ -18,31 +18,39 @@ function NavFeed() {
     const { userState, dispatch } = useUserContext();
     const [activeLink, setActiveLink] = useState('Home');
     const [solicitudes, setSolicitudes] = useState([]);
+    const [notificaciones, setNotificaciones] = useState([]);
     const id = userState.id;
 
-    useEffect(() => {
-        const fetchFriendRequests = async () => {
-            try {
-                const response = await axios.get(`http://localhost:3001/usuario/friend-request/${id}`);
-                setSolicitudes(response.data);
-            } catch (error) {
-                console.error("Error fetching friend requests:", error);
+    const fetchNotificationsAndFriendRequests = async () => {
+        try {
+            const { data: friendData } = await axios.get(`http://localhost:3001/usuario/friend-request/${id}`);
+            setSolicitudes(friendData);
+
+            const { data: notifData } = await axios.get(`http://localhost:3001/notificacion/notificaciones/${id}`);
+            if (notifData && notifData.notificaciones) {
+                setNotificaciones(notifData.notificaciones);
+            } else {
+                setNotificaciones([]);
             }
-        };
-    
-        fetchFriendRequests();
+              
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
+    };
+
+    useEffect(() => {
+        fetchNotificationsAndFriendRequests();
     }, [id]);
 
-    const handleAcceptFriendRequest = async (solicitudId) => {
+    const handleAcceptFriendRequest = async (notificationID) => {
         try {
             const response = await axios.post('http://localhost:3001/usuario/accept-friend-request', { 
-                solicitudID: solicitudId,
+                solicitudID: notificationID,
                 solicitadoID: id,
             });
     
             if (response.status >= 200 && response.status < 300) {
-                const updatedSolicitudes = solicitudes.filter(solicitud => solicitud.ID !== solicitudId);
-                setSolicitudes(updatedSolicitudes);
+                fetchNotificationsAndFriendRequests();
                 toast.success("Solicitud de amistad aceptada");
             } else {
                 toast.error("Hubo un error al aceptar la solicitud.");
@@ -59,8 +67,6 @@ function NavFeed() {
             });
             
             if (response.status >= 200 && response.status < 300) {
-                const updatedSolicitudes = solicitudes.filter(solicitud => solicitud.ID !== friendId);
-                setSolicitudes(updatedSolicitudes);
                 toast.success("Solicitud de amistad rechazada");
             } else {
                 toast.error("Hubo un error al rechazar la solicitud.");
@@ -70,27 +76,40 @@ function NavFeed() {
         }
     };
 
+    const handleNotificationsClick = () => {
+        axios.put('/notificacion/marcar-notificaciones', { usuarioID: id })
+            .then(response => {
+                console.log(response.data.message);
+            })
+            .catch(error => {
+                console.error("Error al marcar notificaciones:", error);
+            });
+    };    
+
     const notificationsPopover = (
         <Popover id="notifications-popover" className="custom-popover">
             <Popover.Header>Notificaciones</Popover.Header>
             <Popover.Body>
-                <ListGroup>
-                    {solicitudes.length === 0 ? (
-                        <div>No hay notificaciones</div>
-                    ) : (
-                        solicitudes.map(solicitud => (
-                            <ListGroup.Item key={solicitud.ID} className="d-flex justify-content-between align-items-center">
-                                <div className="d-flex align-items-center">
-                                    <Image src={solicitud.Foto} roundedCircle width="40" height="40" className="me-2" />
-                                    <strong className='mx-1'>{solicitud.Mote}</strong>
-                                </div>
-                                <div className="d-flex">
-                                    <Button variant="success" size="sm" onClick={() => handleAcceptFriendRequest(solicitud.ID)}>Aceptar</Button>
-                                    <Button variant="danger" size="sm" className="ms-2" onClick={() => handleRejectFriendRequest(solicitud.ID)}>Rechazar</Button>
-                                </div>
-                            </ListGroup.Item>
-                        ))
-                    )}
+            <ListGroup>
+                {notificaciones.length === 0 ? (
+                    <div>No hay notificaciones</div>
+                ) : (
+                    notificaciones.map(notificacion => (
+                    <ListGroup.Item key={notificacion.ID} className="d-flex justify-content-between align-items-center">
+                        <div className="d-flex align-items-center">
+                        <Image src={notificacion.Foto} roundedCircle width="40" height="40" className="me-2" />
+                        <strong className='mx-1'>{notificacion.Mote}</strong>
+                        <span>{notificacion.tipo === 'solicitud' ? 'quiere ser tu mascoamigo.' : 'le ha gustado tu publicación/comentario.'}</span> 
+                        </div>
+                        {notificacion.tipo === 'solicitud' && (
+                        <div className="d-flex">
+                            <Button variant="success" size="sm" onClick={() => handleAcceptFriendRequest(notificacion.ID)}>Aceptar</Button>
+                            <Button variant="danger" size="sm" className="ms-2" onClick={() => handleRejectFriendRequest(notificacion.ID)}>Rechazar</Button>
+                        </div>
+                        )}
+                    </ListGroup.Item>
+                    ))
+                )}
                 </ListGroup>
             </Popover.Body>
         </Popover>
@@ -124,12 +143,13 @@ function NavFeed() {
                     Inicio
                 </Link>
             </li>
-            <li className="nav-item">
-                <OverlayTrigger trigger="hover" placement="right" overlay={notificationsPopover}>
-                    <li className="nav-item">
+            <li className="nav-item position-relative">
+                <OverlayTrigger trigger="click" placement="right" overlay={notificationsPopover}>
+                    <li className="nav-item" onClick={handleNotificationsClick}>
                         <a className="nav-link d-flex align-items-center" href="#">
                             <img src={NotifIcon} width="16px" height="16px" className='mx-3' />
                             Notificaciones
+                            {notificaciones.length > 0 && <span className="notification-dot"></span>}
                         </a>
                     </li>
                 </OverlayTrigger>
@@ -162,8 +182,8 @@ function NavFeed() {
                 </a>
             </li>
             <li className="nav-item">
-                <a className="nav-link" onClick={handleLogout}>
-                    <img src={CerrarSesionIcon} width="16px" height="16px" className='mx-3' />
+                <a to="#" onClick={handleLogout} className="nav-link">
+                    <img src={CerrarSesionIcon} alt="Cerrar sesión" width="16px" height="16px" className='mx-3' />
                     Cerrar sesión
                 </a>
             </li>

@@ -4,10 +4,11 @@ import { Dropdown } from 'react-bootstrap';
 import { useUserContext } from '../../Usercontext';
 import PostComment from './Comments/PostComment';
 import { ToastContainer, toast } from 'react-toastify';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faThumbsUp, faThumbsDown, faComment } from '@fortawesome/free-solid-svg-icons';
 import ImagenIcon from '../../Assets/iconos/Crear publicacion/Imagen.svg';
 import ConfiguracionIcon from '../../Assets/iconos/Configuracion.svg';
+import LikeIcon from '../../Assets/iconos/Crear publicacion/ME GUSTA.svg';
+import disLikeIcon from '../../Assets/iconos/Crear publicacion/ME GUSTA SELECT.svg';
+import MensajeIcon from '../../Assets/iconos/Crear publicacion/MENSAJES.svg';
 
 function Publicacion( { refrescarPublicaciones, refreshKey } ) {
   const { userState } = useUserContext();
@@ -18,6 +19,7 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
   const [previewImage, setPreviewImage] = useState(null);
   const [selectedImageFile, setSelectedImageFile] = useState(null);
   const [postToShowComments, setPostToShowComments] = useState(null);
+  const [likesCount, setLikesCount] = useState(0);
 
   useEffect(() => {
     axios.get(`http://localhost:3001/publicacion/publicaciones/${id}`)
@@ -101,13 +103,16 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
 
         const response = await axios.post('http://localhost:3001/publicacion/like', likeData);
 
-        if (response.status >= 200 && response.status < 300) {          
+        if (response.status >= 200 && response.status < 300) { 
+          const responseLikesCount = await axios.get(`http://localhost:3001/publicacion/likes-count?TipoObjeto=publicacion&ObjetoID=${publicacionID}`);
+          const newLikesCount = responseLikesCount.data.likesCount;         
           setPublicacionesBD(prevPublicaciones => {
                 return prevPublicaciones.map(publi => {
                     if (publi.ID === publicacionID) {
                         return {
                             ...publi,
-                            liked: !liked
+                            liked: !liked,
+                            likesCount: newLikesCount
                         };
                     }
                     return publi;
@@ -205,7 +210,7 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
             </div>
             <div className='card-footer'>
               <button type="button" className='btn btn-light' onClick={() => handleShow(publi.ID)}>
-                <FontAwesomeIcon icon={faComment} className='mx-1' />
+                <img src={MensajeIcon} width="16px" height="16px" className='mx-1' />
                 Comentarios
               </button>
               <button
@@ -213,11 +218,8 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
                 className={`btn btn-light mx-2 ${publi.liked ? 'liked' : ''}`}
                 onClick={() => handleLikeClick(publi.ID, publi.liked)}
               >
-              <FontAwesomeIcon
-                  icon={publi.liked ? faThumbsDown : faThumbsUp}
-                  className='mx-1'
-              />
-                {publi.liked ? 'No me Gusta' : 'Me Gusta'}
+                <img src={publi.liked ? disLikeIcon : LikeIcon} width="16px" height="16px" className='mx-1' />
+                {publi.liked ? 'No me Gusta' : 'Me Gusta'}{publi.likesCount} 
               </button>
               {postToShowComments === publi.ID && <PostComment postID={publi.ID} userID={id} userMote={mote} userFoto={foto} />}
             </div>

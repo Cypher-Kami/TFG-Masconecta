@@ -3,7 +3,8 @@ import axios from 'axios';
 import Publicacion from './Publicacion'
 import { useUserContext } from '../../Usercontext';
 import { ToastContainer, toast } from 'react-toastify';
-import { Picker } from 'emoji-mart';
+import data from '@emoji-mart/data';
+import Picker from '@emoji-mart/react';
 import VideoIcon from '../../Assets/iconos/Crear publicacion/Video.svg';
 import ImagenIcon from '../../Assets/iconos/Crear publicacion/Imagen.svg';
 import EventoIcon from '../../Assets/iconos/Crear publicacion/Evento.svg';
@@ -78,10 +79,9 @@ function CenterContent() {
         }
     };
 
-    const addEmoji = (e) => {
-        let emoji = e.native;
-        setPublicacion((prev) => prev + emoji);
-    };      
+    const addEmoji = (emoji) => {
+        setPublicacion((prev) => prev + emoji.native);
+    }; 
 
     return (
     <>
@@ -114,10 +114,10 @@ function CenterContent() {
                     </div>
                     <form onSubmit={handleSubmit}>
                         <div className='row px-4'>
-                            <input 
-                                className='inputs px-2 my-2 rounded' 
-                                type="text" 
+                            <textarea
+                                className='inputs px-2 my-2 rounded'
                                 placeholder='¿Que hace tú mascota hoy?'
+                                rows="1"
                                 value={publicacion}
                                 onChange={(event) => setPublicacion(event.target.value)}
                             />
@@ -142,11 +142,13 @@ function CenterContent() {
                                     Evento
                                 </button>
                             </div>
-                            <div className='col-3 d-flex justify-content-end'>
+                            <div className='col-3 d-flex justify-content-end position-relative'>
                                 <button type="button" className='btn btn-light btn-circle mb-4 mx-2' onClick={() => setShowEmojiPicker(!showEmojiPicker)}>
                                     😀
                                 </button>
-                                {showEmojiPicker && <Picker onSelect={addEmoji} />}
+                                {showEmojiPicker && <div style={{ position: 'absolute', bottom: '2px', right: '180px' }}>
+                                                        <Picker data={data} onEmojiSelect={addEmoji} navPosition="bottom" perLine="6" theme="light" />
+                                                    </div>}
                                 <button type="submit" className='btn feed-bt px-4 py-2 rounded mb-4'>
                                     Publicar
                                 </button>
