@@ -4,7 +4,6 @@ import { useNavigate, Link } from 'react-router-dom';
 import { Popover, OverlayTrigger, Button, Image, ListGroup } from 'react-bootstrap';
 import axios from 'axios';
 import { toast } from 'react-toastify';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import HomeIcon from '../../Assets/iconos/Menu/Inicio.svg'
 import MsgIcon from '../../Assets/iconos/Menu/Mensaje.svg'
 import NotifIcon from '../../Assets/iconos/Menu/Notificacion.svg'
@@ -17,22 +16,19 @@ function NavFeed() {
     const navigate = useNavigate();
     const { userState, dispatch } = useUserContext();
     const [activeLink, setActiveLink] = useState('Home');
-    const [solicitudes, setSolicitudes] = useState([]);
+    const [solicitudesAmistad, setSolicitudesAmistad] = useState([]);
     const [notificaciones, setNotificaciones] = useState([]);
+    const [refreshKey, setRefreshKey] = useState(0);
     const id = userState.id;
 
     const fetchNotificationsAndFriendRequests = async () => {
         try {
-            const { data: friendData } = await axios.get(`http://localhost:3001/usuario/friend-request/${id}`);
-            setSolicitudes(friendData);
+            const friendResponse = await axios.get(`http://localhost:3001/usuario/friend-request/${id}`);
+            console.log(friendResponse.data);
+            setSolicitudesAmistad(friendResponse.data || []);
 
-            const { data: notifData } = await axios.get(`http://localhost:3001/notificacion/notificaciones/${id}`);
-            if (notifData && notifData.notificaciones) {
-                setNotificaciones(notifData.notificaciones);
-            } else {
-                setNotificaciones([]);
-            }
-              
+            const notifResponse = await axios.get(`http://localhost:3001/notificacion/notificaciones/${id}`);
+            setNotificaciones(notifResponse.data.notificaciones || []);
         } catch (error) {
             console.error("Error fetching data:", error);
         }
@@ -51,6 +47,7 @@ function NavFeed() {
     
             if (response.status >= 200 && response.status < 300) {
                 fetchNotificationsAndFriendRequests();
+                setRefreshKey(prevKey => prevKey + 1);
                 toast.success("Solicitud de amistad aceptada");
             } else {
                 toast.error("Hubo un error al aceptar la solicitud.");
@@ -77,39 +74,72 @@ function NavFeed() {
     };
 
     const handleNotificationsClick = () => {
-        axios.put('/notificacion/marcar-notificaciones', { usuarioID: id })
+        axios.put('http://localhost:3001/notificacion/marcar-notificaciones', { usuarioID: id })
             .then(response => {
-                console.log(response.data.message);
+                if (response.status === 200) {
+                    console.log(response.data.message);
+                    toast.success("Notificaciones marcadas como leídas");
+                    fetchNotificationsAndFriendRequests();
+                } else {
+                    console.error("Respuesta inesperada del servidor:", response.status);
+                    toast.error("Ocurrió un problema al marcar las notificaciones.");
+                }
             })
             .catch(error => {
-                console.error("Error al marcar notificaciones:", error);
+                if (error.response) {
+                    // El servidor respondió con un código de estado fuera del rango de 2xx
+                    console.error("Error del servidor:", error.response.data);
+                    toast.error("Error del servidor: " + error.response.data.error);
+                } else if (error.request) {
+                    // La solicitud se realizó pero no se recibió una respuesta
+                    console.error("No se recibió respuesta del servidor:", error.request);
+                    toast.error("No se recibió respuesta del servidor. Inténtalo de nuevo.");
+                } else {
+                    // Algo sucedió al configurar la solicitud y se disparó un error
+                    console.error("Error al crear la solicitud:", error.message);
+                    toast.error("Ocurrió un error al intentar marcar las notificaciones.");
+                }
             });
-    };    
+    };
 
     const notificationsPopover = (
         <Popover id="notifications-popover" className="custom-popover">
             <Popover.Header>Notificaciones</Popover.Header>
             <Popover.Body>
-            <ListGroup>
-                {notificaciones.length === 0 ? (
-                    <div>No hay notificaciones</div>
-                ) : (
-                    notificaciones.map(notificacion => (
-                    <ListGroup.Item key={notificacion.ID} className="d-flex justify-content-between align-items-center">
-                        <div className="d-flex align-items-center">
-                        <Image src={notificacion.Foto} roundedCircle width="40" height="40" className="me-2" />
-                        <strong className='mx-1'>{notificacion.Mote}</strong>
-                        <span>{notificacion.tipo === 'solicitud' ? 'quiere ser tu mascoamigo.' : 'le ha gustado tu publicación/comentario.'}</span> 
-                        </div>
-                        {notificacion.tipo === 'solicitud' && (
-                        <div className="d-flex">
-                            <Button variant="success" size="sm" onClick={() => handleAcceptFriendRequest(notificacion.ID)}>Aceptar</Button>
-                            <Button variant="danger" size="sm" className="ms-2" onClick={() => handleRejectFriendRequest(notificacion.ID)}>Rechazar</Button>
-                        </div>
-                        )}
-                    </ListGroup.Item>
-                    ))
-                )}
+                <ListGroup>
+                    {notificaciones.length === 0 && solicitudesAmistad.length === 0 ? (
+                    <div>No hay notificaciones ni solicitudes de amistad</div>
+                    ) : (
+                    <>
+                        {notificaciones.map(notificacion => (
+                        <ListGroup.Item key={notificacion.ID} className="d-flex justify-content-between align-items-center">
+                            <div className="d-flex align-items-center">
+                            <Image src={notificacion.Foto} roundedCircle width="40" height="40" className="me-2" />
+                            <strong className='mx-1'>{notificacion.Mote}</strong>
+                            <span>{notificacion.tipo === 'solicitud' ? 'quiere ser tu mascoamigo.' : 'le ha gustado tu publicación/comentario.'}</span> 
+                            </div>
+                            {notificacion.tipo === 'solicitud' && (
+                            <div className="d-flex">
+                                <Button variant="success" size="sm" onClick={() => handleAcceptFriendRequest(notificacion.ID)}>Aceptar</Button>
+                                <Button variant="danger" size="sm" className="ms-2" onClick={() => handleRejectFriendRequest(notificacion.ID)}>Rechazar</Button>
+                            </div>
+                            )}
+                        </ListGroup.Item>
+                        ))}
+                        {solicitudesAmistad.map(solicitud => (
+                            <ListGroup.Item key={solicitud.ID} className="d-flex justify-content-between align-items-center">
+                                <div className="d-flex align-items-center">
+                                    <Image src={solicitud.Foto} roundedCircle width="40" height="40" className="me-2" />
+                                    <strong className='mx-1'>{solicitud.Mote}</strong>
+                                </div>
+                                <div className="d-flex">
+                                    <Button variant="success" size="sm" onClick={() => handleAcceptFriendRequest(solicitud.ID)}>Aceptar</Button>
+                                    <Button variant="danger" size="sm" className="ms-2" onClick={() => handleRejectFriendRequest(solicitud.ID)}>Rechazar</Button>
+                                </div>
+                            </ListGroup.Item>
+                        ))}
+                    </>
+                    )}
                 </ListGroup>
             </Popover.Body>
         </Popover>

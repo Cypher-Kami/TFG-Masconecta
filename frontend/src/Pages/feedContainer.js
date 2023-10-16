@@ -11,6 +11,7 @@ import 'react-toastify/dist/ReactToastify.css';
 function FeedContainer() {
   const navigate = useNavigate();
   const { userState, dispatch } = useUserContext();
+  const [refreshKey, setRefreshKey] = useState(0);
   
   return (
     <div className='container-fluid pt-3 login-container'>
