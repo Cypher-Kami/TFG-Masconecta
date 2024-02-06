@@ -4,6 +4,7 @@ import NavFeed from '../Components/Feed/NavFeed';
 import RightContent from '../Components/Feed/RightContent';
 import CenterContent from '../Components/Feed/CenterContent';
 import Profile from '../Components/Feed/Profile';
+import Events from '../Components/Events/EventsCalendar';
 import Banner from '../Assets/LogoPrincipal.svg'
 import { useUserContext } from '../Usercontext';
 import 'react-toastify/dist/ReactToastify.css';
@@ -22,10 +23,12 @@ function FeedContainer() {
         </div>
         <div className='col-md-7'>
           {userState.currentComponent === 'Home' ? (
-              <CenterContent />
-            ) : (
-              <Profile />
-            )}
+            <CenterContent />
+          ) : userState.currentComponent === 'Events' ? (
+            <Events />
+          ) : (
+            <Profile />
+          )}
         </div>
         <div className='col-md-3'>
           <RightContent />

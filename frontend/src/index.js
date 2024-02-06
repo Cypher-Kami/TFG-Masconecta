@@ -9,6 +9,7 @@ import ResetPassword from './Pages/resetPass';
 import ForgotPass from './Components/Auth/ForgotPass';
 import PrivateRoute from './Components/Auth/PrivateRoute';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
 import './Styles/index.css';
 import './Styles/fontawesome.css';
 

@@ -10,14 +10,24 @@ dotenv.config();
 router.use(fileUpload());
 
 // Ruta para obtener todos los eventos
-router.get('/event', async (req, res) => {
+router.get('/events', async (req, res) => {
   try {
-    // Lógica para obtener todos los eventos desde la base de datos...
-    res.status(200).json({ message: 'Lista de eventos obtenida exitosamente.' });
+    const [events] = await new Promise((resolve, reject) => {
+      const query = 'SELECT * FROM Evento';
+      connection.query(query, (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+    res.status(200).json(events);
   } catch (error) {
-    res.status(500).json({ error: 'Error al obtener la lista de eventos.' });
+    res.status(500).json({ error: 'Error al obtener la lista de eventos: ' + error.message });
   }
 });
+
 
 // Ruta para obtener un evento por su ID
 router.get('/event/:id', async (req, res) => {
@@ -31,6 +41,22 @@ router.get('/event/:id', async (req, res) => {
   }
 });
 
-// Resto de las rutas relacionadas con eventos...
+// Ruta para crear un nuevo evento
+router.post('/event', async (req, res) => {
+  const { Nombre, Descripcion, Fecha_Evento, Ubicacion, Propietario } = req.body;
+
+  try {
+    const result = await new Promise((resolve, reject) => {
+      const query = 'INSERT INTO Evento (Nombre, Descripcion, Fecha_Evento, Ubicacion, Propietario) VALUES (?, ?, ?, ?, ?)';
+      connection.query(query, [Nombre, Descripcion, Fecha_Evento, Ubicacion, Propietario], (error, results) => {
+        if (error) reject(error);
+        else resolve(results);
+      });
+    });
+    res.status(200).json({ message: 'Evento creado exitosamente.', eventId: result.insertId });
+  } catch (error) {
+    res.status(500).json({ error: 'Error al crear el evento: ' + error.message });
+  }
+});
 
 module.exports = router;

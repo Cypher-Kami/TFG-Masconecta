@@ -326,7 +326,6 @@ a {
 }
 
 .custom-popover {
-    width: 600px;
     max-height: 300px;
 }
 
@@ -338,9 +337,5 @@ a {
     position: absolute;
     top: 10px;
     right: 10px;
-}
-
-.card-footer {
-    background-color: #edeffe !important;
 }
 

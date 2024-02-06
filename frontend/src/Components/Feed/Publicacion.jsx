@@ -163,9 +163,6 @@ function Publicacion( { refrescarPublicaciones, refreshKey } ) {
                     </Dropdown.Menu>
                   </Dropdown>
                 )}
-                  <button type="submit" className='btn feed-bt px-4 py-2 mx-2 rounded mb-4'>
-                    Agregar
-                  </button>
                 </div>
               </div>
               <div className="row px-2">

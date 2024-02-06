@@ -25,10 +25,10 @@ function NavFeed() {
         try {
             const friendResponse = await axios.get(`http://localhost:3001/usuario/friend-request/${id}`);
             console.log(friendResponse.data);
-            setSolicitudesAmistad(friendResponse.data || []);
+            setSolicitudesAmistad(Array.isArray(friendResponse.data) ? friendResponse.data : []);
 
             const notifResponse = await axios.get(`http://localhost:3001/notificacion/notificaciones/${id}`);
-            setNotificaciones(notifResponse.data.notificaciones || []);
+            setNotificaciones(Array.isArray(notifResponse.data.notificaciones) ? notifResponse.data.notificaciones : []);
         } catch (error) {
             console.error("Error fetching data:", error);
         }
@@ -114,14 +114,20 @@ function NavFeed() {
                         {notificaciones.map(notificacion => (
                         <ListGroup.Item key={notificacion.ID} className="d-flex justify-content-between align-items-center">
                             <div className="d-flex align-items-center">
-                            <Image src={notificacion.Foto} roundedCircle width="40" height="40" className="me-2" />
-                            <strong className='mx-1'>{notificacion.Mote}</strong>
-                            <span>{notificacion.tipo === 'solicitud' ? 'quiere ser tu mascoamigo.' : 'le ha gustado tu publicación/comentario.'}</span> 
+                                <Image src={notificacion.Foto} roundedCircle width="40" height="40" className="me-2" />
+                                <div>
+                                    <strong>{notificacion.Mote}</strong>
+                                    <div>{notificacion.tipo === 'solicitud' ? 'quiere ser tu mascoamigo.' : 'le ha gustado tu publicación/comentario.'}</div>
+                                </div>
                             </div>
                             {notificacion.tipo === 'solicitud' && (
-                            <div className="d-flex">
-                                <Button variant="success" size="sm" onClick={() => handleAcceptFriendRequest(notificacion.ID)}>Aceptar</Button>
-                                <Button variant="danger" size="sm" className="ms-2" onClick={() => handleRejectFriendRequest(notificacion.ID)}>Rechazar</Button>
+                            <div className="d-flex align-items-center ms-auto">
+                                <Button variant="outline-success" size="sm" className="me-2" onClick={() => handleAcceptFriendRequest(notificacion.ID)}>
+                                    <i className="fas fa-check"></i>
+                                </Button>
+                                <Button variant="outline-danger" size="sm" onClick={() => handleRejectFriendRequest(notificacion.ID)}>
+                                    <i className="fas fa-times"></i>
+                                </Button>
                             </div>
                             )}
                         </ListGroup.Item>
@@ -129,23 +135,25 @@ function NavFeed() {
                         {solicitudesAmistad.map(solicitud => (
                             <ListGroup.Item key={solicitud.ID} className="d-flex justify-content-between align-items-center">
                                 <div className="d-flex align-items-center">
-                                    <Image src={solicitud.Foto} roundedCircle width="40" height="40" className="me-2" />
-                                    <strong className='mx-1'>{solicitud.Mote}</strong>
+                                    <Image src={solicitud.Foto} roundedCircle width="30" height="30" className="me-2" />
+                                    <strong>{solicitud.Mote}</strong>
                                 </div>
-                                <div className="d-flex">
-                                    <Button variant="success" size="sm" onClick={() => handleAcceptFriendRequest(solicitud.ID)}>Aceptar</Button>
-                                    <Button variant="danger" size="sm" className="ms-2" onClick={() => handleRejectFriendRequest(solicitud.ID)}>Rechazar</Button>
+                                <div className="d-flex align-items-center ms-auto">
+                                    <Button variant="success" size="sm" className="me-1" onClick={() => handleAcceptFriendRequest(solicitud.ID)}>
+                                        <i className="fas fa-check"></i>
+                                    </Button>
+                                    <Button variant="danger" size="sm" onClick={() => handleRejectFriendRequest(solicitud.ID)}>
+                                        <i className="fas fa-times"></i>
+                                    </Button>
                                 </div>
-                            </ListGroup.Item>
-                        ))}
+                            </ListGroup.Item>    
+                        ))}     
                     </>
                     )}
                 </ListGroup>
             </Popover.Body>
         </Popover>
-    );
-    
-    
+    );    
 
     const handleComponent = ( Component ) => {
         setActiveLink(Component);
@@ -200,7 +208,7 @@ function NavFeed() {
                 </a>
             </li>
             <li className="nav-item">
-                <a className="nav-link" href="#">
+                <a className="nav-link" href="#" onClick={() => handleComponent("Events")}>
                     <img src={EventIcon} width="16px" height="16px" className='mx-3' />
                     Eventos
                 </a>
