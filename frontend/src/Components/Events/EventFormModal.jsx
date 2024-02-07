@@ -1,28 +1,59 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form } from 'react-bootstrap';
+import moment from 'moment';
 
-function EventFormModal({ show, onHide, onSubmit }) {
+function EventFormModal({ show, onHide, onSubmit, onDelete, event }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
     const [location, setLocation] = useState('');
     const [start, setStart] = useState('');
     const [end, setEnd] = useState('');
 
+    useEffect(() => {
+        if (event) {
+            console.log(event);
+            setTitle(event.title);
+            setDescription(event.Descripcion);
+            setLocation(event.Ubicacion);
+            setStart(moment(event.start).format('YYYY-MM-DDTHH:mm'));
+            setEnd(event.end ? moment(event.end).format('YYYY-MM-DDTHH:mm') : '');
+        } else {
+            resetForm();
+        }
+    }, [event]);
+
+    const resetForm = () => {
+        setTitle('');
+        setDescription('');
+        setLocation('');
+        setStart('');
+        setEnd('');
+    };
+
     const handleSubmit = (e) => {
         e.preventDefault();
-        onSubmit({
-            Nombre: title,
-            Descripcion: description,
-            Fecha_Evento: start,
-            Ubicacion: location,
-        });
+        const eventData = {
+            title,
+            desc: description,
+            ubicacion: location,
+            start: new Date(start),
+            end: new Date(end),
+        };
+        onSubmit(eventData, event ? event.id : null);
         onHide();
+    };
+
+    const handleDelete = () => {
+        if (window.confirm('¿Estás seguro de que deseas borrar este evento?')) {
+            onDelete(event.ID);
+            onHide();
+        }
     };
 
     return (
         <Modal show={show} onHide={onHide} size="md" centered>
             <Modal.Header closeButton>
-                <Modal.Title>Crear Evento</Modal.Title>
+                <Modal.Title>{event ? "Editar Evento" : "Crear Evento"}</Modal.Title>
             </Modal.Header>
             <Modal.Body>
                 <Form onSubmit={handleSubmit}>
@@ -72,10 +103,14 @@ function EventFormModal({ show, onHide, onSubmit }) {
                             required
                         />
                     </Form.Group>
-                    <br />
-                    <Button variant="secondary" type="submit">
-                        Crear Evento
+                    <Button variant="secondary" className="mt-2 mr-2" type="submit">
+                        {event ? "Editar Evento" : "Crear Evento"}
                     </Button>
+                    {event && (
+                        <Button variant="danger" className="mt-2" onClick={handleDelete}>
+                            Borrar Evento
+                        </Button>
+                    )}
                 </Form>
             </Modal.Body>
         </Modal>
