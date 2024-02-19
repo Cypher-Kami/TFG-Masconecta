@@ -223,4 +223,37 @@ router.post('/reject-friend-request', async (req, res) => {
   }
 });
 
+router.get('/amigos/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const query = `
+      SELECT 
+        Usuario.ID, Usuario.Mote, Usuario.Foto 
+      FROM 
+        Amigo 
+      JOIN 
+        Usuario ON Usuario.ID = Amigo.UsuarioID2 OR Usuario.ID = Amigo.UsuarioID1
+      WHERE 
+        (Amigo.UsuarioID1 = ? OR Amigo.UsuarioID2 = ?) AND Usuario.ID != ?
+    `;
+
+    const amigos = await new Promise((resolve, reject) => {
+      connection.query(query, [userId, userId, userId], (error, results) => {
+        if (error) {
+          reject(error);
+        } else {
+          resolve(results);
+        }
+      });
+    });
+
+    const uniqueAmigos = [...new Map(amigos.map(amigo => [amigo['ID'], amigo])).values()];
+
+    res.status(200).json(uniqueAmigos);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al buscar amigos: ' + error });
+  }
+});
+
 module.exports = router;

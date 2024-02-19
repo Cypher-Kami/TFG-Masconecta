@@ -5,6 +5,7 @@ import RightContent from '../Components/Feed/RightContent';
 import CenterContent from '../Components/Feed/CenterContent';
 import Profile from '../Components/Feed/Profile';
 import Events from '../Components/Events/EventsCalendar';
+import Chats from './ChatPage'
 import Banner from '../Assets/LogoPrincipal.svg'
 import { useUserContext } from '../Usercontext';
 import 'react-toastify/dist/ReactToastify.css';
@@ -26,6 +27,8 @@ function FeedContainer() {
             <CenterContent />
           ) : userState.currentComponent === 'Events' ? (
             <Events />
+          ) : userState.currentComponent === 'Chats' ? (
+            <Chats />
           ) : (
             <Profile />
           )}

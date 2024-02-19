@@ -87,15 +87,12 @@ function NavFeed() {
             })
             .catch(error => {
                 if (error.response) {
-                    // El servidor respondió con un código de estado fuera del rango de 2xx
                     console.error("Error del servidor:", error.response.data);
                     toast.error("Error del servidor: " + error.response.data.error);
                 } else if (error.request) {
-                    // La solicitud se realizó pero no se recibió una respuesta
                     console.error("No se recibió respuesta del servidor:", error.request);
                     toast.error("No se recibió respuesta del servidor. Inténtalo de nuevo.");
                 } else {
-                    // Algo sucedió al configurar la solicitud y se disparó un error
                     console.error("Error al crear la solicitud:", error.message);
                     toast.error("Ocurrió un error al intentar marcar las notificaciones.");
                 }
@@ -214,9 +211,9 @@ function NavFeed() {
                 </a>
             </li>
             <li className="nav-item">
-                <a className="nav-link" href="#">
+                <a className="nav-link" href="#" onClick={() => handleComponent("Chats")}>
                     <img src={GroupIcon} width="16px" height="16px" className='mx-3' />
-                    Grupos
+                    Mensajes
                 </a>
             </li>
             <li className="nav-item">

@@ -19,7 +19,8 @@ function EventsCalendar() {
     useEffect(() => {
         const fetchEvents = async () => {
             try {
-                const response = await axios.get('http://localhost:3001/evento/events');
+                const userID = userState.id;
+                const response = await axios.get(`http://localhost:3001/evento/events?propietario=${userID}`);
                 const fetchedEvents = response.data.map(event => ({
                     ...event,
                     start: new Date(event.Fecha_Evento),
@@ -34,7 +35,7 @@ function EventsCalendar() {
         };
         
         fetchEvents();
-    }, []);
+    }, [userState.id]);
 
     const handleSelectEvent = (event) => {
         setSelectedEvent(event);

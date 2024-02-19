@@ -11,10 +11,20 @@ router.use(fileUpload());
 
 // Ruta para obtener todos los eventos
 router.get('/events', async (req, res) => {
+  const Propietario = req.query.propietario;
+  console.log(Propietario, 'ID DE USUARIO');
   try {
     const events = await new Promise((resolve, reject) => {
-      const query = 'SELECT * FROM Evento';
-      connection.query(query, (error, results) => {
+      const query = `
+        SELECT e.* FROM Evento e
+        WHERE e.Propietario = ?
+        OR e.Propietario IN (
+          SELECT UsuarioID2 FROM Amigo WHERE UsuarioID1 = ?
+          UNION
+          SELECT UsuarioID1 FROM Amigo WHERE UsuarioID2 = ?
+        )
+      `;
+      connection.query(query, [Propietario, Propietario, Propietario], (error, results) => {
         if (error) reject(error);
         else resolve(results);
       });
