@@ -31,49 +31,58 @@ router.post('/mensaje/crear', async (req, res) => {
 
 //Listar mensajes
 router.get('/mensajes/:usuarioID1/:usuarioID2', async (req, res) => {
-    const { usuarioID1, usuarioID2 } = req.params;
-  
-    try {
+  const { usuarioID1, usuarioID2 } = req.params;
+
+  try {
       const query = `
-        SELECT * FROM Mensaje 
-        WHERE (UsuarioID1 = ? AND UsuarioID2 = ?) OR (UsuarioID1 = ? AND UsuarioID2 = ?)
-        ORDER BY Fecha ASC`;
+          SELECT Mensaje.*, Usuario1.Mote as MoteRemitente, Usuario1.Foto as FotoRemitente, Usuario2.Mote as MoteDestinatario, Usuario2.Foto as FotoDestinatario
+          FROM Mensaje
+          JOIN Usuario as Usuario1 ON Mensaje.UsuarioID1 = Usuario1.ID
+          JOIN Usuario as Usuario2 ON Mensaje.UsuarioID2 = Usuario2.ID
+          WHERE (Mensaje.UsuarioID1 = ? AND Mensaje.UsuarioID2 = ?) OR (Mensaje.UsuarioID1 = ? AND Mensaje.UsuarioID2 = ?)
+          ORDER BY Mensaje.Fecha ASC`;
       const [messages] = await connection.promise().query(query, [usuarioID1, usuarioID2, usuarioID2, usuarioID1]);
-  
+
       res.json(messages);
-    } catch (error) {
+  } catch (error) {
       res.status(500).json({ error: 'Error al listar los mensajes: ' + error });
-    }
+  }
 });
 
 //Editar mensajes
 router.put('/mensaje/editar/:mensajeID', async (req, res) => {
-    const { mensajeID } = req.params;
-    const { contenido } = req.body;
-  
-    try {
-      const query = 'UPDATE Mensaje SET Contenido = ? WHERE ID = ?';
-      await connection.promise().query(query, [contenido, mensajeID]);
-  
+  const { mensajeID } = req.params;
+  const { contenido } = req.body;
+
+  try {
+      await connection.promise().query('UPDATE Mensaje SET Contenido = ? WHERE ID = ?', [contenido, mensajeID]);
+      
+      pusher.trigger('chat-channel', 'edited-message', {
+          id: mensajeID,
+          contenido: contenido
+      });
+
       res.json({ message: "Mensaje actualizado con éxito" });
-    } catch (error) {
+  } catch (error) {
       res.status(500).json({ error: 'Error al actualizar el mensaje: ' + error });
-    }
+  }
 });
   
 //Eliminar mensajes
 router.delete('/mensaje/eliminar/:mensajeID', async (req, res) => {
-    const { mensajeID } = req.params;
-  
-    try {
-      const query = 'DELETE FROM Mensaje WHERE ID = ?';
-      await connection.promise().query(query, [mensajeID]);
-  
+  const { mensajeID } = req.params;
+
+  try {
+      await connection.promise().query('DELETE FROM Mensaje WHERE ID = ?', [mensajeID]);
+      
+      pusher.trigger('chat-channel', 'deleted-message', {
+          id: mensajeID,
+      });
+
       res.json({ message: "Mensaje eliminado con éxito" });
-    } catch (error) {
+  } catch (error) {
       res.status(500).json({ error: 'Error al eliminar el mensaje: ' + error });
-    }
+  }
 });
-  
 
 module.exports = router;
