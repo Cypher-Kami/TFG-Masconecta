@@ -10,23 +10,55 @@ router.use(fileUpload());
 
 // Crear un mensaje
 router.post('/mensaje/crear', async (req, res) => {
-    const { usuarioID1, usuarioID2, contenido } = req.body;
-  
-    try {
-      const query = 'INSERT INTO Mensaje (UsuarioID1, UsuarioID2, Contenido) VALUES (?, ?, ?)';
-      const [results] = await connection.promise().query(query, [usuarioID1, usuarioID2, contenido]);
-  
-      pusher.trigger('chat-channel', 'new-message', {
-        id: results.insertId,
-        usuarioID1,
-        usuarioID2,
-        contenido
-      });
+  const { usuarioID1, usuarioID2, contenido } = req.body;
 
-      res.status(201).json({ message: "Mensaje creado con éxito", messageId: results.insertId });
-    } catch (error) {
-      res.status(500).json({ error: 'Error al crear el mensaje: ' + error });
-    }
+  try {
+      const insertQuery = 'INSERT INTO Mensaje (UsuarioID1, UsuarioID2, Contenido) VALUES (?, ?, ?)';
+      const [insertResults] = await connection.promise().query(insertQuery, [usuarioID1, usuarioID2, contenido]);
+      const messageId = insertResults.insertId;
+
+      const detailsQuery = `
+          SELECT Mensaje.*, 
+                 Usuario1.Mote as MoteRemitente, Usuario1.Foto as FotoRemitente, 
+                 Usuario2.Mote as MoteDestinatario, Usuario2.Foto as FotoDestinatario
+          FROM Mensaje
+          JOIN Usuario as Usuario1 ON Mensaje.UsuarioID1 = Usuario1.ID
+          JOIN Usuario as Usuario2 ON Mensaje.UsuarioID2 = Usuario2.ID
+          WHERE Mensaje.ID = ?`;
+      const [detailsResults] = await connection.promise().query(detailsQuery, [messageId]);
+
+      if (detailsResults.length > 0) {
+          const { MoteRemitente, FotoRemitente, MoteDestinatario, FotoDestinatario } = detailsResults[0];
+
+          pusher.trigger('chat-channel', 'new-message', {
+            id: messageId,
+            usuarioID1,
+            usuarioID2,
+            contenido,
+            MoteRemitente,
+            FotoRemitente,
+            MoteDestinatario,
+            FotoDestinatario
+        }).catch((error) => {
+            console.error('Error al emitir evento a Pusher:', error);
+        });
+
+        res.status(201).json({ message: "Mensaje creado con éxito", data: {
+          id: messageId,
+          usuarioID1,
+          usuarioID2,
+          contenido,
+          MoteRemitente,
+          FotoRemitente,
+          MoteDestinatario,
+          FotoDestinatario
+        }});
+      } else {
+          res.status(404).json({ message: "Detalles del mensaje no encontrados después de la inserción." });
+      }
+  } catch (error) {
+      res.status(500).json({ error: 'Error al crear el mensaje: ' + error.message });
+  }
 });
 
 //Listar mensajes

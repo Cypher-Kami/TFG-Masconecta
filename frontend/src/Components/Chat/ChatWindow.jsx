@@ -21,9 +21,14 @@ function ChatWindow({ chatId }) {
       
         const channel = pusher.subscribe('chat-channel');
         channel.bind('new-message', function(data) {
+            console.log('Nuevo mensaje recibido:', data);
+            console.log('data.usuarioID1:', data.usuarioID1, 'userState.id:', userState.id);
             if (data.usuarioID1 === userState.id && data.usuarioID2 === chatId || 
                 data.usuarioID2 === userState.id && data.usuarioID1 === chatId) {
-              setMensajes(mensajes => [...mensajes, data]);
+                    setMensajes(mensajes => [...mensajes, {
+                        ...data,
+                        id: data.id
+                    }]);
             }
         });
     
@@ -55,8 +60,15 @@ function ChatWindow({ chatId }) {
         }
     };
 
-    const enviarMensaje = async () => {
+    const enviarMensaje = async (e) => {
+        e.preventDefault();
         if (!mensaje.trim()) return;
+
+        console.log("Enviando mensaje:", {
+            usuarioID1: userState.id,
+            usuarioID2: chatId,
+            contenido: mensaje
+        });
     
         try {
             const usuarioID1 = userState.id;
@@ -68,18 +80,18 @@ function ChatWindow({ chatId }) {
                 usuarioID2,
                 contenido
             });
-    
-            const nuevaFecha = response.data.Fecha || new Date().toISOString(); // Utiliza la fecha actual como fallback
-    
+            console.log(response, "CREANDO MENSAJE");
             const nuevoMensaje = {
-                id: response.data.messageId,
+                ID: response.data.messageId, 
                 UsuarioID1: usuarioID1,
                 UsuarioID2: usuarioID2,
                 Contenido: contenido,
-                Fecha: nuevaFecha,
+                Fecha: new Date().toISOString(), 
+                FotoRemitente: userState.foto, 
+                MoteRemitente: userState.mote, 
             };
     
-            setMensajes(mensajes => [...mensajes, nuevoMensaje]);
+            //setMensajes(mensajes => [...mensajes, nuevoMensaje]);
             setMensaje('');
         } catch (error) {
             console.error("Error al enviar el mensaje:", error);
@@ -104,6 +116,21 @@ function ChatWindow({ chatId }) {
         }
     };
 
+    const iniciarEdicion = (msg) => {
+        console.log(msg, "EDITANDO");
+        setEditandoMensaje({ id: msg.id, contenido: msg.Contenido });
+    };
+
+    const eliminarMensaje = async (mensajeID) => {
+        try {
+            await axios.delete(`http://localhost:3001/mensajes/mensaje/eliminar/${mensajeID}`);
+            setMensajes(mensajes.filter(msg => msg.id !== mensajeID));
+        } catch (error) {
+            console.error("Error al eliminar el mensaje:", error);
+        }
+    };
+    
+
     return (
         <div>
             {chatId ? (
@@ -117,13 +144,18 @@ function ChatWindow({ chatId }) {
                                             <span>
                                                 <strong>{msg.MoteRemitente || msg.MoteDestinatario} dice:</strong>
                                             </span>
+                                            {(String(msg.usuarioID1) === String(userState.id) || String(msg.UsuarioID1) === String(userState.id)) && (                                                <div className="ml-auto">
+                                                    <Button variant="outline-primary" size="sm" onClick={() => iniciarEdicion(msg)}>Editar</Button>
+                                                    <Button variant="outline-danger" size="sm" onClick={() => eliminarMensaje(msg.id)}>Eliminar</Button>
+                                                </div>
+                                            )}
                                             <span className="text-muted">
                                                 Enviado {msg.Fecha && formatDistanceToNow(new Date(msg.Fecha), { addSuffix: true, locale: es })}
                                             </span>
                                         </div>
                                         <div className="d-flex align-items-center">
                                             <img src={msg.FotoRemitente || msg.FotoDestinatario} alt="Avatar" className="rounded-circle mr-2" style={{width: '30px', height: '30px'}} />
-                                            <span>{msg.Contenido}</span>
+                                            <span>{msg.contenido || msg.Contenido}</span>
                                         </div>
                                     </div>
                                 </ListGroup.Item>
@@ -149,7 +181,7 @@ function ChatWindow({ chatId }) {
                     )}
                     <Form onSubmit={(e) => {
                         e.preventDefault();
-                        enviarMensaje();
+                        enviarMensaje(e);
                     }}>
                         <InputGroup className="mb-3">
                             <FormControl
@@ -171,4 +203,4 @@ function ChatWindow({ chatId }) {
     );
 }
 
-export default ChatWindow
+export default ChatWindow;
