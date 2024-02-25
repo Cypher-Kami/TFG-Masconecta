@@ -16,7 +16,7 @@ const ChatPage = () => {
         <Col md={4} className="p-0 mt-5">
           <ChatSidebar onChatSelect={handleChatSelect} />
         </Col>
-        <Col md={8} className="p-0 pl-3 ml-2 mt-5 border-bottom-0 border-top-0">
+        <Col md={8} className="p-0 px-3 ml-2 mt-5 border-bottom-0 border-top-0">
           <ChatWindow chatId={activeChatId} />
         </Col>
       </Row>

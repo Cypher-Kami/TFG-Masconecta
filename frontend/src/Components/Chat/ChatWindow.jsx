@@ -5,6 +5,8 @@ import Pusher from 'pusher-js';
 import { formatDistanceToNow } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useUserContext } from '../../Usercontext';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 
 function ChatWindow({ chatId }) {
     const [mensaje, setMensaje] = useState('');
@@ -33,17 +35,19 @@ function ChatWindow({ chatId }) {
         });
     
         channel.bind('edited-message', function(data) {
-            setMensajes(mensajes => mensajes.map(msg => {
-                if (msg.id === data.id) {
-                    return { ...msg, contenido: data.contenido };
-                }
-                return msg;
-            }));
+            setMensajes(mensajes => {
+                const nuevosMensajes = mensajes.map(msg => 
+                    Number(msg.id) === Number(data.id) ? { ...msg, contenido: data.contenido } : msg
+                );
+                return nuevosMensajes;
+            });
         });
     
         channel.bind('deleted-message', function(data) {
-            setMensajes(mensajes => mensajes.filter(msg => msg.id !== data.id));
-        });
+            setMensajes(mensajes => 
+                mensajes.filter(msg => Number(msg.id) !== Number(data.id))
+            );
+        });        
       
         return () => {
           channel.unbind_all();
@@ -54,7 +58,12 @@ function ChatWindow({ chatId }) {
     const cargarMensajes = async () => {
         try {
             const response = await axios.get(`http://localhost:3001/mensajes/mensajes/${userState.id}/${chatId}`);
-            setMensajes(response.data);
+            const mensajes = response.data.map(msg => ({
+                ...msg,
+                id: msg.ID
+            }));
+            console.log(mensajes, "Listando mensajes");
+            setMensajes(mensajes);
         } catch (error) {
             console.error("Error al cargar mensajes:", error);
         }
@@ -118,7 +127,7 @@ function ChatWindow({ chatId }) {
 
     const iniciarEdicion = (msg) => {
         console.log(msg, "EDITANDO");
-        setEditandoMensaje({ id: msg.id, contenido: msg.Contenido });
+        setEditandoMensaje({ id: msg.id, contenido: msg.Contenido || msg.contenido });
     };
 
     const eliminarMensaje = async (mensajeID) => {
@@ -138,31 +147,33 @@ function ChatWindow({ chatId }) {
                     <div className="messages-container">
                         <ListGroup variant="flush">
                             {mensajes.map((msg) => (
-                                <ListGroup.Item key={msg.id} className="d-flex justify-content-start align-items-center border-bottom-0">
-                                    <div className="d-flex flex-column flex-grow-1">
-                                        <div className="d-flex justify-content-between">
-                                            <span>
+                                <ListGroup.Item key={msg.id} style={{ backgroundColor: '#edeffe', borderRadius: '10px', marginBottom: '10px', padding: '10px' }}>
+                                    <div className="d-flex justify-content-between align-items-center">
+                                        <div className="d-flex align-items-center" style={{ marginRight: '10px' }}>
+                                            <img src={msg.FotoRemitente || msg.FotoDestinatario} alt="Avatar" className="rounded-circle" style={{ width: '30px', height: '30px', marginRight: '15px' }} />
+                                            <div>
                                                 <strong>{msg.MoteRemitente || msg.MoteDestinatario} dice:</strong>
-                                            </span>
-                                            {(String(msg.usuarioID1) === String(userState.id) || String(msg.UsuarioID1) === String(userState.id)) && (                                                <div className="ml-auto">
-                                                    <Button variant="outline-primary" size="sm" onClick={() => iniciarEdicion(msg)}>Editar</Button>
-                                                    <Button variant="outline-danger" size="sm" onClick={() => eliminarMensaje(msg.id)}>Eliminar</Button>
-                                                </div>
-                                            )}
-                                            <span className="text-muted">
-                                                Enviado {msg.Fecha && formatDistanceToNow(new Date(msg.Fecha), { addSuffix: true, locale: es })}
-                                            </span>
+                                                <div>{msg.contenido || msg.Contenido}</div>
+                                            </div>
                                         </div>
-                                        <div className="d-flex align-items-center">
-                                            <img src={msg.FotoRemitente || msg.FotoDestinatario} alt="Avatar" className="rounded-circle mr-2" style={{width: '30px', height: '30px'}} />
-                                            <span>{msg.contenido || msg.Contenido}</span>
-                                        </div>
+                                        {String(msg.usuarioID1) === String(userState.id) || String(msg.UsuarioID1) === String(userState.id) ? (
+                                            <div className="ml-auto d-flex">
+                                                <Button variant="outline-light" className="rounded-circle mx-2" onClick={() => iniciarEdicion(msg)} style={{ color: '#9B41FE', border: '1px solid #9B41FE', width: '30px', height: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                    <FontAwesomeIcon icon={faEdit} style={{ fontSize: '14px' }} />
+                                                </Button>
+                                                <Button variant="outline-light" className="rounded-circle" onClick={() => eliminarMensaje(msg.id)} style={{ color: 'red', border: '1px solid red', width: '30px', height: '30px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                                                    <FontAwesomeIcon icon={faTrash} style={{ fontSize: '14px' }} />
+                                                </Button>
+                                            </div>
+                                        ) : null}
                                     </div>
+                                    <span className="text-muted" style={{ fontSize: '0.8rem' }}>
+                                        Enviado {msg.Fecha && formatDistanceToNow(new Date(msg.Fecha), { addSuffix: true, locale: es })}
+                                    </span>
                                 </ListGroup.Item>
                             ))}
                         </ListGroup>
                     </div>
-                    {/* Área para editar un mensaje */}
                     {editandoMensaje && (
                         <Form onSubmit={(e) => {
                             e.preventDefault();
@@ -197,7 +208,7 @@ function ChatWindow({ chatId }) {
                     </Form>
                 </>
             ) : (
-                <div>Seleccione un chat para comenzar</div>
+                <div className='text-center'>Seleccione un chat para comenzar</div>
             )}
         </div>
     );

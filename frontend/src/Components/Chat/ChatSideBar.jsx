@@ -22,13 +22,16 @@ function ChatSideBar({ onChatSelect }) {
       }, [userState.id]);
 
   return (
-    <ListGroup>
-      {chats.map(chat => (
-        <ListGroup.Item key={chat.ID} action onClick={() => onChatSelect(chat.ID)}>
-          {chat.Mote}
-        </ListGroup.Item>
-      ))}
-    </ListGroup>
+    <>
+      <h5 style={{ color: '#9B41FE' }} className='text-center mb-3'>Elige un Mascoamigo</h5>
+      <ListGroup>
+        {chats.map(chat => (
+          <ListGroup.Item key={chat.ID} action onClick={() => onChatSelect(chat.ID)}>
+            {chat.Mote}
+          </ListGroup.Item>
+        ))}
+      </ListGroup>
+    </>
   );
 }
 
