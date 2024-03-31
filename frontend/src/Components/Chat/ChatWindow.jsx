@@ -129,10 +129,10 @@ function ChatWindow({ chatId }) {
     
 
     return (
-        <div>
+        <div className="chat-container">
             {chatId ? (
                 <>
-                    <div className="messages-container">
+                    <div className="messages-scroll-container">
                         <ListGroup variant="flush">
                             {mensajes.map((msg) => (
                                 <ListGroup.Item key={msg.id} style={{ backgroundColor: '#edeffe', borderRadius: '10px', marginBottom: '10px', padding: '10px' }}>
@@ -178,22 +178,24 @@ function ChatWindow({ chatId }) {
                             </InputGroup>
                         </Form>
                     )}
-                    <Form onSubmit={(e) => {
-                        e.preventDefault();
-                        enviarMensaje(e);
-                    }}>
-                        <InputGroup className="mb-3">
-                            <FormControl
-                                placeholder="Escribe un mensaje..."
-                                aria-label="Mensaje"
-                                value={mensaje}
-                                onChange={(e) => setMensaje(e.target.value)}
-                            />
-                            <Button className='btn submit-bt' type="submit">
-                                Enviar
-                            </Button>
-                        </InputGroup>
-                    </Form>
+                    <div className="message-input-container">
+                        <Form onSubmit={(e) => {
+                            e.preventDefault();
+                            enviarMensaje(e);
+                        }}>
+                            <InputGroup className="mb-3">
+                                <FormControl
+                                    placeholder="Escribe un mensaje..."
+                                    aria-label="Mensaje"
+                                    value={mensaje}
+                                    onChange={(e) => setMensaje(e.target.value)}
+                                />
+                                <Button className='btn submit-bt' type="submit">
+                                    Enviar
+                                </Button>
+                            </InputGroup>
+                        </Form>
+                    </div>
                 </>
             ) : (
                 <div className='text-center'>Seleccione un chat para comenzar</div>

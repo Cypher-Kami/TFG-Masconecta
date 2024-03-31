@@ -117,4 +117,31 @@ router.delete('/mensaje/eliminar/:mensajeID', async (req, res) => {
   }
 });
 
+router.get('/no-leidos/:usuarioId', async (req, res) => {
+    const { usuarioId } = req.params;
+    try {
+        const [result] = await connection.promise().query(
+            'SELECT COUNT(*) AS noLeidos FROM Mensaje WHERE UsuarioID2 = ? AND Leido = false', 
+            [usuarioId]
+        );
+        res.json({ noLeidos: result[0].noLeidos });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al obtener mensajes no leídos: ' + error });
+    }
+});
+
+router.put('/marcar-leidos/:usuarioId', async (req, res) => {
+    const { usuarioId } = req.params;
+    try {
+        await connection.promise().query(
+            'UPDATE Mensaje SET Leido = true WHERE UsuarioID2 = ?', 
+            [usuarioId]
+        );
+        res.json({ message: "Mensajes marcados como leídos" });
+    } catch (error) {
+        res.status(500).json({ error: 'Error al marcar mensajes como leídos: ' + error });
+    }
+});
+
+
 module.exports = router;

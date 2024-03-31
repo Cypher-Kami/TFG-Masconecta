@@ -4,9 +4,9 @@ import { faSearch } from '@fortawesome/free-solid-svg-icons';
 import { toast } from 'react-toastify';
 import SearchModal from '../Search/SearchModal';
 import axios from 'axios';
-import Img1 from '../../Assets/fotos_mascotas/gato-5.png';
-import Img2 from '../../Assets/fotos_mascotas/perro-1.png';
 import { useUserContext } from '../../Usercontext';
+import { format, parseISO } from 'date-fns';
+import { es } from 'date-fns/locale';
 
 function RightContent() {
     const { userState } = useUserContext();
@@ -14,6 +14,8 @@ function RightContent() {
     const [searchTerm, setSearchTerm] = useState('');
     const [searchResults, setSearchResults] = useState([]);
     const [showModal, setShowModal] = useState(false);
+    const [ultimosAmigos, setUltimosAmigos] = useState([]);
+    const [ultimosEventos, setUltimosEventos] = useState([]);
 
     const handleSearch = async () => {
         try {
@@ -43,6 +45,39 @@ function RightContent() {
         }
     };
 
+    useEffect(() => {
+        const cargarUltimosAmigos = async () => {
+            try {
+                const response = await axios.get(`http://localhost:3001/usuario/ultimos-amigos/${userState.id}`);
+                setUltimosAmigos(response.data);
+            } catch (error) {
+                console.error('Error al cargar los últimos amigos agregados:', error);
+            }
+        };
+
+        const cargarUltimosEventos = async () => {
+            try {
+                const response = await axios.get(`http://localhost:3001/evento/ultimos-eventos/${userState.id}`);
+                setUltimosEventos(response.data);
+            } catch (error) {
+                console.error('Error al cargar los últimos eventos:', error);
+                toast.error('Error al cargar los últimos eventos.');
+            }
+        };
+
+        cargarUltimosAmigos();
+        cargarUltimosEventos();
+    }, [userState.id]);
+
+    const formatearFecha = (fecha) => {
+        try {
+            return format(parseISO(fecha), "PPPP", { locale: es });
+        } catch (error) {
+            console.error('Error al formatear la fecha:', error);
+            return '';
+        }
+    };
+
     return (
     <div className="container">
         <div className="row">
@@ -63,29 +98,20 @@ function RightContent() {
         <div className="row">
             <div className="col">
                 <div className="right-content mt-4 p-3 rounded-4">
-                    <h4>Mascotas asociadas</h4>
+                    <h4>Últimos amigos agregados</h4>
                     <ul className="list-unstyled">
-                        <li className="d-flex align-items-center mb-2">
-                            <img
-                            src={Img1}
-                            alt="Imagen 1"
-                            className="rounded-circle me-2"
-                            width="50px"
-                            height="50px"
-                            />
-                            Coco
-                        </li>
-
-                        <li className="d-flex align-items-center mb-2">
-                            <img
-                            src={Img2}
-                            alt="Imagen 2"
-                            className="rounded-circle me-2"
-                            width="50"
-                            height="50"
-                            />
-                            Chanel
-                        </li>
+                        {ultimosAmigos.map(amigo => (
+                            <li key={amigo.ID} className="d-flex align-items-center mb-2">
+                                <img
+                                    src={amigo.Foto}
+                                    alt={amigo.Mote}
+                                    className="rounded-circle me-2"
+                                    width="50"
+                                    height="50"
+                                />
+                                {amigo.Mote}
+                            </li>
+                        ))}
                     </ul>
                 </div>
             </div>
@@ -93,29 +119,26 @@ function RightContent() {
         <div className="row">
             <div className="col">
                 <div className="right-content mt-4 p-3 rounded-4">
-                    <h4>Comunidades Top</h4>
+                    <h4>Eventos próximos</h4>
                     <ul className="list-unstyled">
-                        <li className="d-flex align-items-center mb-2">
-                            <img
-                            src={Img1}
-                            alt="Imagen 1"
-                            className="rounded-circle me-2"
-                            width="50px"
-                            height="50px"
-                            />
-                            Coco
-                        </li>
-
-                        <li className="d-flex align-items-center mb-2">
-                            <img
-                            src={Img2}
-                            alt="Imagen 2"
-                            className="rounded-circle me-2"
-                            width="50"
-                            height="50"
-                            />
-                            Chanel
-                        </li>
+                        {ultimosEventos.map(evento => (
+                            <li key={evento.ID} className="d-flex align-items-center mb-2">
+                                <img
+                                    src={evento.Foto}
+                                    alt={evento.Mote}
+                                    className="rounded-circle me-2"
+                                    width="50"
+                                    height="50"
+                                />
+                                <div>
+                                    <strong>{evento.Nombre}</strong> - {evento.Mote}<br />
+                                    <small>
+                                        {evento.Fecha_Inicio ? `Inicio: ${formatearFecha(evento.Fecha_Inicio)}` : 'N/A'} - 
+                                        {evento.Fecha_Fin ? `Fin: ${formatearFecha(evento.Fecha_Fin)}` : 'N/A'}
+                                    </small>
+                                </div>
+                            </li>
+                        ))}
                     </ul>
                 </div>
             </div>

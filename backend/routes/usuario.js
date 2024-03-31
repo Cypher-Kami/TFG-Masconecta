@@ -256,4 +256,49 @@ router.get('/amigos/:userId', async (req, res) => {
   }
 });
 
+router.get('/solicitudes-no-leidas/:usuarioID', async (req, res) => {
+  const { usuarioID } = req.params;
+
+  try {
+      const resultado = await new Promise((resolve, reject) => {
+          connection.query(
+              'SELECT COUNT(*) AS noLeidas FROM SolicitudAmistad WHERE SolicitadoID = ? AND Estado = "pendiente"',
+              [usuarioID],
+              (error, results) => {
+                  if (error) reject(error);
+                  else resolve(results[0]);
+              }
+          );
+      });
+
+      if (resultado) {
+          res.json({ noLeidas: resultado.noLeidas });
+      } else {
+          res.json({ noLeidas: 0 });
+      }
+  } catch (error) {
+      res.status(500).json({ error: 'Error al consultar solicitudes no leídas: ' + error });
+  }
+});
+
+router.get('/ultimos-amigos/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const query = `
+      SELECT U.ID, U.Mote, U.Foto
+      FROM Amigo A
+      JOIN Usuario U ON U.ID = A.UsuarioID2 OR U.ID = A.UsuarioID1
+      WHERE ? IN (A.UsuarioID1, A.UsuarioID2) AND U.ID != ?
+      ORDER BY A.ID DESC
+      LIMIT 3
+    `;
+
+    const amigos = await connection.promise().query(query, [userId, userId]);
+    res.json(amigos[0]);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener los últimos amigos agregados: ' + error });
+  }
+});
+
 module.exports = router;

@@ -87,18 +87,10 @@ function CenterContent() {
     <>
         <ul className="nav border-bottom justify-content-center ">
             <li className="nav-item menu-central">
-                <a className="nav-link active" href="#">Para ti</a>
+                <a className="nav-link active" href="#">Siguiendo</a>
             </li>
             <li className="nav-item menu-central">
-                <a className="nav-link" href="#">Siguiendo</a>
-            </li>
-            <li className="nav-item dropdown">
-                <a className="nav-link dropdown-toggle" data-bs-toggle="dropdown" href="#" role="button" aria-expanded="false">Filtrar</a>
-                <ul className="dropdown-menu">
-                <li><a className="dropdown-item" href="#">Action</a></li>
-                <li><hr className="dropdown-divider" /></li>
-                <li><a className="dropdown-item" href="#">Separated link</a></li>
-                </ul>
+                <a className="nav-link" href="#">Para ti</a>
             </li>
         </ul>
         <div className='container-fluid'>

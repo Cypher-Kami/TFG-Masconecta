@@ -39,7 +39,6 @@ router.get('/event/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Lógica para obtener un evento por su ID desde la base de datos...
     res.status(200).json({ message: `Evento con ID ${id} obtenido exitosamente.` });
   } catch (error) {
     res.status(500).json({ error: 'Error al obtener el evento.' });
@@ -99,5 +98,26 @@ router.delete('/events/:id', async (req, res) => {
   }
 });
 
+router.get('/ultimos-eventos/:userId', async (req, res) => {
+  const userId = req.params.userId;
+
+  try {
+    const query = `
+      SELECT E.ID, E.Nombre, E.Fecha_Inicio, E.Fecha_Fin, U.Foto, U.Mote
+      FROM Evento E
+      JOIN Usuario U ON E.Propietario = U.ID
+      LEFT JOIN Amigo A ON A.UsuarioID1 = U.ID OR A.UsuarioID2 = U.ID
+      WHERE E.Propietario = ? OR A.UsuarioID1 = ? OR A.UsuarioID2 = ?
+      GROUP BY E.ID
+      ORDER BY ABS(DATEDIFF(E.Fecha_Inicio, CURDATE())) ASC
+      LIMIT 3
+    `;
+
+    const [eventos] = await connection.promise().query(query, [userId, userId, userId]);
+    res.json(eventos);
+  } catch (error) {
+    res.status(500).json({ error: 'Error al obtener los últimos eventos agregados: ' + error });
+  }
+});
 
 module.exports = router;

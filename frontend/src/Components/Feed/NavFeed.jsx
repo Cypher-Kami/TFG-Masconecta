@@ -3,13 +3,13 @@ import { useUserContext } from '../../Usercontext';
 import { useNavigate, Link } from 'react-router-dom';
 import { Popover, OverlayTrigger, Button, Image, ListGroup } from 'react-bootstrap';
 import axios from 'axios';
+import Pusher from 'pusher-js';
 import { toast } from 'react-toastify';
 import HomeIcon from '../../Assets/iconos/Menu/Inicio.svg'
-import MsgIcon from '../../Assets/iconos/Menu/Mensaje.svg'
+import MsgIcon from '../../Assets/iconos/Menu/Grupos.svg'
 import NotifIcon from '../../Assets/iconos/Menu/Notificacion.svg'
 import ProfIcon from '../../Assets/iconos/Menu/Perfil.svg'
 import EventIcon from '../../Assets/iconos/Menu/Eventos.svg'
-import GroupIcon from '../../Assets/iconos/Menu/Grupos.svg'
 import CerrarSesionIcon from '../../Assets/iconos/Menu/Cerrar sesion.svg'
 
 function NavFeed() {
@@ -19,6 +19,8 @@ function NavFeed() {
     const [solicitudesAmistad, setSolicitudesAmistad] = useState([]);
     const [notificaciones, setNotificaciones] = useState([]);
     const [refreshKey, setRefreshKey] = useState(0);
+    const [mensajesNoLeidos, setMensajesNoLeidos] = useState(0);
+    const [solicitudesNoLeidas, setSolicitudesNoLeidas] = useState(0);
     const id = userState.id;
 
     const fetchNotificationsAndFriendRequests = async () => {
@@ -73,30 +75,85 @@ function NavFeed() {
         }
     };
 
-    const handleNotificationsClick = () => {
-        axios.put('http://localhost:3001/notificacion/marcar-notificaciones', { usuarioID: id })
-            .then(response => {
-                if (response.status === 200) {
-                    console.log(response.data.message);
-                    toast.success("Notificaciones marcadas como leídas");
-                    fetchNotificationsAndFriendRequests();
-                } else {
-                    console.error("Respuesta inesperada del servidor:", response.status);
-                    toast.error("Ocurrió un problema al marcar las notificaciones.");
+    const handleNotificationsClick = async () => {
+        try {
+            const response = await axios.put('http://localhost:3001/notificacion/marcar-notificaciones', { usuarioID: id });
+            if (response.status === 200) {
+                console.log(response.data.message);
+                toast.success("Notificaciones marcadas como leídas");
+                setNotificaciones(notificaciones.map(n => ({ ...n, Leida: true })));
+                setSolicitudesNoLeidas(0);
+            }
+        } catch (error) {
+            console.error("Error al marcar notificaciones como leídas:", error);
+        }
+    };
+
+    const cargarMensajesNoLeidos = async () => {
+        try {
+            const { data } = await axios.get(`http://localhost:3001/mensajes/no-leidos/${userState.id}`);
+            setMensajesNoLeidos(data.noLeidos);
+            console.log(data.noLeidos);
+        } catch (error) {
+            console.error("Error al cargar mensajes no leídos:", error);
+        }
+    };
+
+    useEffect(() => {
+        cargarMensajesNoLeidos();
+    
+        const pusher = new Pusher('91d2cc9b6e40b8c0804d', {
+            cluster: 'eu',
+            encrypted: true
+        });
+    
+        const channel = pusher.subscribe('chat-channel');
+        channel.bind('new-message', (data) => {
+            if (data.usuarioID2 === userState.id) {
+                if (activeLink !== 'Chats') {
+                    setMensajesNoLeidos((prevCount) => prevCount + 1);
                 }
-            })
-            .catch(error => {
-                if (error.response) {
-                    console.error("Error del servidor:", error.response.data);
-                    toast.error("Error del servidor: " + error.response.data.error);
-                } else if (error.request) {
-                    console.error("No se recibió respuesta del servidor:", error.request);
-                    toast.error("No se recibió respuesta del servidor. Inténtalo de nuevo.");
-                } else {
-                    console.error("Error al crear la solicitud:", error.message);
-                    toast.error("Ocurrió un error al intentar marcar las notificaciones.");
-                }
-            });
+            }
+        });
+    
+        return () => {
+            channel.unbind_all();
+            channel.unsubscribe();
+        };
+    }, [userState.id, activeLink]);
+
+    useEffect(() => {
+        const fetchSolicitudesNoLeidas = async () => {
+            const response = await axios.get(`http://localhost:3001/usuario/solicitudes-no-leidas/${userState.id}`);
+            setSolicitudesNoLeidas(response.data.noLeidas);
+        };
+    
+        fetchNotificationsAndFriendRequests();
+        fetchSolicitudesNoLeidas();
+
+        const pusher = new Pusher('91d2cc9b6e40b8c0804d', {
+            cluster: 'eu',
+            encrypted: true
+        });
+
+        const channel = pusher.subscribe('amistad-channel');
+        channel.bind('nueva-solicitud', () => {
+            setSolicitudesNoLeidas((prevCount) => prevCount + 1);
+        });
+
+        return () => {
+            channel.unbind_all();
+            channel.unsubscribe();
+        };
+    }, [userState.id]);
+    
+    const handleMessagesClick = async () => {
+        try {
+            await axios.put(`http://localhost:3001/mensajes/marcar-leidos/${userState.id}`);
+            setMensajesNoLeidos(0); // Resetear el contador de mensajes no leídos
+        } catch (error) {
+            console.error("Error al marcar mensajes como leídos:", error);
+        }
     };
 
     const notificationsPopover = (
@@ -184,16 +241,10 @@ function NavFeed() {
                         <a className="nav-link d-flex align-items-center" href="#">
                             <img src={NotifIcon} width="16px" height="16px" className='mx-3' />
                             Notificaciones
-                            {notificaciones.length > 0 && <span className="notification-dot"></span>}
+                            {(notificaciones.length > 0 || solicitudesNoLeidas > 0) && <span className="notification-dot"></span>}
                         </a>
                     </li>
                 </OverlayTrigger>
-            </li>
-            <li className="nav-item">
-                <a className="nav-link" href="#">
-                    <img src={MsgIcon} width="16px" height="16px" className='mx-3' />
-                    Mensajes
-                </a>
             </li>
             <li className="nav-item">
                 <a
@@ -211,9 +262,15 @@ function NavFeed() {
                 </a>
             </li>
             <li className="nav-item">
-                <a className="nav-link" href="#" onClick={() => handleComponent("Chats")}>
-                    <img src={GroupIcon} width="16px" height="16px" className='mx-3' />
+                <a className="nav-link" href="#" onClick={() => {
+                    handleComponent("Chats");
+                    handleMessagesClick();
+                }}>
+                    <img src={MsgIcon} width="16px" height="16px" className='mx-3' />
                     Mensajes
+                    {mensajesNoLeidos > 0 && (
+                        <span className="notification-dot"></span>
+                    )}
                 </a>
             </li>
             <li className="nav-item">
@@ -225,8 +282,8 @@ function NavFeed() {
         </ul>
         <hr />
         <div className='d-flex justify-content-center'>
-            <button className="btn submit-bt p-4">
-                Configuración
+            <button className="btn submit-bt p-2">
+                Modo oscuro
             </button>
         </div>
     </>
