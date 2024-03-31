@@ -12,7 +12,6 @@ function ChatSideBar({ onChatSelect }) {
           try {
             const response = await axios.get(`http://localhost:3001/usuario/amigos/${userState.id}`);
             setChats(response.data);
-            console.log(response.data, "Amigos");
           } catch (error) {
             console.error("Error al cargar amigos:", error);
           }

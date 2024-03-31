@@ -10,8 +10,7 @@ import EventComponent from './EventComponent';
 const localizer = momentLocalizer(moment);
 
 function EventsCalendar() {
-    const { userState, dispatch } = useUserContext();
-    const id = userState.id;
+    const { userState } = useUserContext();
     const [events, setEvents] = useState([]);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [selectedEvent, setSelectedEvent] = useState(null);
@@ -21,19 +20,23 @@ function EventsCalendar() {
             try {
                 const userID = userState.id;
                 const response = await axios.get(`http://localhost:3001/evento/events?propietario=${userID}`);
+                console.log('Respuesta del servidor:', response.data);
                 const fetchedEvents = response.data.map(event => ({
                     ...event,
-                    start: new Date(event.Fecha_Evento),
-                    end: new Date(event.Fecha_Evento),
+                    ID: event.ID,
+                    start: event.Fecha_Inicio ? new Date(event.Fecha_Inicio) : new Date(),
+                    end: event.Fecha_Fin ? new Date(event.Fecha_Fin) : new Date(),
                     title: event.Nombre,
+                    Ubicacion: event.Ubicacion,
+                    Description: event.Descripcion,
                 }));
                 setEvents(fetchedEvents);
+                console.log('Eventos cargados:', fetchedEvents);
             } catch (error) {
                 console.error('Error al cargar eventos:', error);
                 toast.error('Error al cargar eventos');
             }
         };
-        
         fetchEvents();
     }, [userState.id]);
 
@@ -43,39 +46,54 @@ function EventsCalendar() {
     };
 
     const handleEditEvent = (event) => {
+        console.log('Evento seleccionado:', event);
         setSelectedEvent(event);
         setIsModalOpen(true);
     };
 
     const handleSelectSlot = ({ start, end }) => {
-        setSelectedEvent(null);
+        const newEvent = {
+            start: start,
+            end: end,
+        };
+        setSelectedEvent(newEvent);
         setIsModalOpen(true);
     };
 
     const handleFormSubmit = async (formData, eventId) => {
-        const url = selectedEvent ? `http://localhost:3001/evento/events/${selectedEvent.ID}` : 'http://localhost:3001/evento/event';
-        const method = selectedEvent ? 'put' : 'post';
+        console.log('Datos del formulario a enviar:', formData);
+        const id = selectedEvent?.ID || eventId;
+        const url = id ? `http://localhost:3001/evento/events/${id}` : 'http://localhost:3001/evento/event';
+        const method = id ? 'put' : 'post';
     
         const dataToSend = {
-            Nombre: formData.title,
-            Descripcion: formData.desc,
-            Ubicacion: formData.ubicacion,
-            Fecha_Evento: moment(formData.start).format('YYYY-MM-DD HH:mm:ss'),
-            Fecha_Evento_Fin: formData.end ? moment(formData.end).format('YYYY-MM-DD HH:mm:ss') : null,
+            title: formData.title,
+            Descripcion: formData.Descripcion,
+            Ubicacion: formData.Ubicacion,
+            Fecha_Inicio: moment(formData.start).format('YYYY-MM-DD HH:mm:ss'),
+            Fecha_Fin: formData.end ? moment(formData.end).format('YYYY-MM-DD HH:mm:ss') : null,
             Propietario: userState.id,
         };
     
         try {
             const response = await axios[method](url, dataToSend);
+            console.log('Respuesta del servidor al enviar el formulario:', response);
 
             if (method === 'put') {
                 // Actualiza el evento en el estado
-                setEvents(events.map(event => event.id === eventId ? {...event, ...formData} : event));
+                setEvents(events.map(event => event.ID === eventId ? {...event, ...formData} : event));
+                console.log('Estado actualizado de eventos:', events);
                 toast.success('Evento actualizado exitosamente');
             } else {
                 // Agrega el nuevo evento al estado
-                const newEvent = {...response.data, start: new Date(formData.start), end: new Date(formData.end)};
+                const newEvent = { 
+                    ...response.data, 
+                    start: new Date(dataToSend.Fecha_Inicio), 
+                    end: new Date(dataToSend.Fecha_Fin),
+                    title: dataToSend.Nombre
+                };                
                 setEvents([...events, newEvent]);
+                console.log('Estado actualizado de eventos:', events);
                 toast.success('Evento creado exitosamente');
             }
         } catch (error) {
@@ -87,6 +105,7 @@ function EventsCalendar() {
     };
 
     const handleDeleteEvent = async (eventId) => {
+        console.log('Eliminando evento con ID:', eventId);
         if (window.confirm('¿Estás seguro de que deseas borrar este evento?')) {
             try {
                 await axios.delete(`http://localhost:3001/evento/events/${eventId}`);
@@ -98,6 +117,7 @@ function EventsCalendar() {
             }
         }
     };
+    console.log('Eventos a renderizar en el calendario:', events);
 
     return (
         <>

@@ -162,7 +162,6 @@ router.get('/search', async (req, res) => {
 
 router.post('/like', async (req, res) => {
     const { TipoObjeto, ObjetoID, UsuarioID, Accion } = req.body;
-    console.log("SQL Parameters:", TipoObjeto, ObjetoID, UsuarioID);
     try {
         const existingLike = await new Promise((resolve, reject) => {
             connection.query(

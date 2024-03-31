@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Button, Form, InputGroup } from 'react-bootstrap';
 import moment from 'moment';
-import MapModal from './MapModal';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faMapMarkedAlt } from '@fortawesome/free-solid-svg-icons';
 
 function EventFormModal({ show, onHide, onSubmit, onDelete, event }) {
     const [title, setTitle] = useState('');
     const [description, setDescription] = useState('');
-    const [location, setLocation] = useState('');
     const [start, setStart] = useState('');
     const [end, setEnd] = useState('');
-    const [showMapModal, setShowMapModal] = useState(false);
+    const [location, setLocation] = useState('');
 
     useEffect(() => {
         if (event) {
-            setTitle(event.title || '');
+            setTitle(event.Nombre || '');
             setDescription(event.Descripcion || '');
             setLocation(event.Ubicacion || '');
             setStart(event.start ? moment(event.start).format('YYYY-MM-DDTHH:mm') : '');
@@ -26,6 +22,7 @@ function EventFormModal({ show, onHide, onSubmit, onDelete, event }) {
     }, [event]);
 
     const resetForm = () => {
+        console.log('Restableciendo formulario');
         setTitle('');
         setDescription('');
         setLocation('');
@@ -36,13 +33,13 @@ function EventFormModal({ show, onHide, onSubmit, onDelete, event }) {
     const handleSubmit = (e) => {
         e.preventDefault();
         const eventData = {
-            title,
-            desc: description,
-            ubicacion: location,
+            title: title,
+            Descripcion: description,
+            Ubicacion: location,
             start: new Date(start),
             end: new Date(end),
         };
-        onSubmit(eventData, event ? event.id : null);
+        onSubmit(eventData, event ? event.ID : null);
         onHide();
     };
 
@@ -51,15 +48,6 @@ function EventFormModal({ show, onHide, onSubmit, onDelete, event }) {
             onDelete(event.ID);
             onHide();
         }
-    };
-
-    const handleLocationButtonClick = () => {
-        setShowMapModal(true);
-    };
-    
-    const handleLocationSelect = (location) => {
-        setLocation(`${location.lat}, ${location.lng}`);
-        setShowMapModal(false);
     };
 
     return (
@@ -89,23 +77,15 @@ function EventFormModal({ show, onHide, onSubmit, onDelete, event }) {
                         />
                     </Form.Group>
                     <Form.Group>
-                    <Form.Label>Ubicación</Form.Label>
-                    <InputGroup>
+                        <Form.Label>Ubicación</Form.Label>
                         <Form.Control
                             type="text"
                             value={location}
                             onChange={(e) => setLocation(e.target.value)}
-                            placeholder="Latitud, Longitud"
-                            readOnly
+                            placeholder="Escribe la ubicación del evento"
+                            required
                         />
-                        <InputGroup.Append>
-                            <Button className='submit-bt' onClick={handleLocationButtonClick}>
-                                <FontAwesomeIcon icon={faMapMarkedAlt} />
-                            </Button>
-                        </InputGroup.Append>
-                    </InputGroup>
-                    <MapModal show={showMapModal} onHide={() => setShowMapModal(false)} onLocationSelect={handleLocationSelect} />
-                </Form.Group>
+                    </Form.Group>
                     <Form.Group>
                         <Form.Label>Inicio del Evento</Form.Label>
                         <Form.Control
@@ -124,8 +104,8 @@ function EventFormModal({ show, onHide, onSubmit, onDelete, event }) {
                             required
                         />
                     </Form.Group>
-                    <Button className="mt-2 mx-2 submit-bt" type="submit">
-                        {event ? "Editar Evento" : "Crear Evento"}
+                    <Button className="mt-2 p-0 mx-2 submit-bt" type="submit">
+                        {event ? "Actualizar Evento" : "Crear Evento"}
                     </Button>
                     {event && (
                         <Button variant="danger" className="mt-2" onClick={handleDelete}>

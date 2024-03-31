@@ -12,7 +12,6 @@ router.use(fileUpload());
 // Ruta para obtener todos los eventos
 router.get('/events', async (req, res) => {
   const Propietario = req.query.propietario;
-  console.log(Propietario, 'ID DE USUARIO');
   try {
     const events = await new Promise((resolve, reject) => {
       const query = `
@@ -49,12 +48,12 @@ router.get('/event/:id', async (req, res) => {
 
 // Ruta para crear un nuevo evento
 router.post('/event', async (req, res) => {
-  const { Nombre, Descripcion, Fecha_Evento, Ubicacion, Propietario } = req.body;
+  const { title, Descripcion, Fecha_Inicio, Fecha_Fin, Ubicacion, Propietario } = req.body;
 
   try {
     const result = await new Promise((resolve, reject) => {
-      const query = 'INSERT INTO Evento (Nombre, Descripcion, Fecha_Evento, Ubicacion, Propietario) VALUES (?, ?, ?, ?, ?)';
-      connection.query(query, [Nombre, Descripcion, Fecha_Evento, Ubicacion, Propietario], (error, results) => {
+      const query = 'INSERT INTO Evento (Nombre, Descripcion, Fecha_Inicio, Fecha_Fin, Ubicacion, Propietario) VALUES (?, ?, ?, ?, ?, ?)';
+      connection.query(query, [title, Descripcion, Fecha_Inicio, Fecha_Fin, Ubicacion, Propietario], (error, results) => {
         if (error) reject(error);
         else resolve(results);
       });
@@ -67,12 +66,12 @@ router.post('/event', async (req, res) => {
 
 router.put('/events/:id', async (req, res) => {
   const { id } = req.params;
-  const { Nombre, Descripcion, Fecha_Evento, Ubicacion, Propietario } = req.body; // Nuevos datos del evento
+  const { title, Descripcion, Fecha_Inicio, Fecha_Fin, Ubicacion, Propietario } = req.body; // Nuevos datos del evento
 
   try {
     await new Promise((resolve, reject) => {
-      const query = 'UPDATE Evento SET Nombre = ?, Descripcion = ?, Fecha_Evento = ?, Ubicacion = ? WHERE ID = ? AND Propietario = ?';
-      connection.query(query, [Nombre, Descripcion, Fecha_Evento, Ubicacion, id, Propietario], (error, results) => {
+      const query = 'UPDATE Evento SET Nombre = ?, Descripcion = ?, Fecha_Inicio = ?, Fecha_Fin = ?, Ubicacion = ? WHERE ID = ? AND Propietario = ?';
+      connection.query(query, [title, Descripcion, Fecha_Inicio, Fecha_Fin, Ubicacion, id, Propietario], (error, results) => {
         if (error) reject(error);
         else resolve(results);
       });

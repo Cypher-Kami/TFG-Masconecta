@@ -23,8 +23,6 @@ function ChatWindow({ chatId }) {
       
         const channel = pusher.subscribe('chat-channel');
         channel.bind('new-message', function(data) {
-            console.log('Nuevo mensaje recibido:', data);
-            console.log('data.usuarioID1:', data.usuarioID1, 'userState.id:', userState.id);
             if (data.usuarioID1 === userState.id && data.usuarioID2 === chatId || 
                 data.usuarioID2 === userState.id && data.usuarioID1 === chatId) {
                     setMensajes(mensajes => [...mensajes, {
@@ -62,7 +60,6 @@ function ChatWindow({ chatId }) {
                 ...msg,
                 id: msg.ID
             }));
-            console.log(mensajes, "Listando mensajes");
             setMensajes(mensajes);
         } catch (error) {
             console.error("Error al cargar mensajes:", error);
@@ -72,12 +69,6 @@ function ChatWindow({ chatId }) {
     const enviarMensaje = async (e) => {
         e.preventDefault();
         if (!mensaje.trim()) return;
-
-        console.log("Enviando mensaje:", {
-            usuarioID1: userState.id,
-            usuarioID2: chatId,
-            contenido: mensaje
-        });
     
         try {
             const usuarioID1 = userState.id;
@@ -89,7 +80,6 @@ function ChatWindow({ chatId }) {
                 usuarioID2,
                 contenido
             });
-            console.log(response, "CREANDO MENSAJE");
             const nuevoMensaje = {
                 ID: response.data.messageId, 
                 UsuarioID1: usuarioID1,
@@ -100,7 +90,6 @@ function ChatWindow({ chatId }) {
                 MoteRemitente: userState.mote, 
             };
     
-            //setMensajes(mensajes => [...mensajes, nuevoMensaje]);
             setMensaje('');
         } catch (error) {
             console.error("Error al enviar el mensaje:", error);
@@ -126,7 +115,6 @@ function ChatWindow({ chatId }) {
     };
 
     const iniciarEdicion = (msg) => {
-        console.log(msg, "EDITANDO");
         setEditandoMensaje({ id: msg.id, contenido: msg.Contenido || msg.contenido });
     };
 
