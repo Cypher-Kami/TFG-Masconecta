@@ -45,6 +45,7 @@ function Profile() {
           Nombre: (userData.Nombre && userData.Nombre !=="null") ? userData.Nombre : '',
           Apellido: (userData.Apellido && userData.Apellido !=="null") ? userData.Apellido : '',
           Descripcion: (userData.Descripcion && userData.Descripcion !=="null") ? userData.Descripcion : '',
+          esEmpresa: userState.esEmpresa,
         });
       })
       .catch(error => {
@@ -63,6 +64,7 @@ function Profile() {
   };
 
   const handleSubmit = async (values) => {
+    console.log("Values before updating profile", values);
     let formData = new FormData();
     formData.append('Mote', values.Mote);
     formData.append('Email', values.Email);
@@ -83,6 +85,13 @@ function Profile() {
       const response = await axios.put(`http://localhost:3001/usuario/editar-perfil/${id}`, formData);
       if (response.status >= 200 && response.status < 300) {
         toast.success('Perfil actualizado exitosamente.');
+        console.log("Dispatching after profile update", {
+          id: id,
+          mote: values.Mote,
+          email: values.Email,
+          foto: values.Foto,
+          esEmpresa: userState.esEmpresa,
+        });    
         dispatch({
           type: 'SET_USER',
           payload: {
@@ -90,6 +99,7 @@ function Profile() {
             mote: values.Mote,
             email: values.Email,
             foto: values.Foto,
+            esEmpresa: userState.esEmpresa,
           },
         });
       }

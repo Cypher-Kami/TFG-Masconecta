@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import ReactDOM from 'react-dom';
 import jwt_decode from 'jwt-decode';
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
@@ -31,6 +31,11 @@ function Index() {
       userID = decodedToken.UserID;
     }
   }
+
+  useEffect(() => {
+    const currentTheme = localStorage.getItem('theme') || 'light';
+    document.body.setAttribute('data-theme', currentTheme);
+  }, []);
 
   return (
       <UserProvider initialUserID={userID}>

@@ -8,11 +8,14 @@ export const UserProvider = ({ children, initialUserID }) => {
     mote: '',
     email: '',
     foto: '',
+    esEmpresa: 0,
     publicaciones: [],
     currentComponent: 'Home',
+    theme: 'light',
   };
 
   const userReducer = (state, action) => {
+    console.log("Action received in userReducer", action);
     switch (action.type) {
       case 'SET_USER':
         return {
@@ -21,6 +24,7 @@ export const UserProvider = ({ children, initialUserID }) => {
           mote: action.payload.mote,
           foto: action.payload.foto,
           email: action.payload.email,
+          esEmpresa: action.payload.esEmpresa,
         };
       case 'CLEAR_USER':
         return initialState;
@@ -33,6 +37,11 @@ export const UserProvider = ({ children, initialUserID }) => {
         return {
           ...state,
           currentComponent: action.payload,
+        };
+      case 'TOGGLE_THEME':
+        return {
+          ...state,
+          theme: state.theme === 'light' ? 'dark' : 'light',
         };
       default:
         return state;

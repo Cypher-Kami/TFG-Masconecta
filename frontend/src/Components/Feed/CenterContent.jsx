@@ -36,6 +36,7 @@ function CenterContent() {
         axios.get(`http://localhost:3001/usuario/${id}`)
           .then(response => {
             const userData = response.data;
+            console.log("UserData after fetching", response.data);
             setValues({
                 ...values,
                 Mote: userData.Mote,
@@ -48,6 +49,7 @@ function CenterContent() {
                   mote: userData.Mote,
                   foto: userData.Foto,
                   email: userData.Email,
+                  esEmpresa: userData.EsEmpresa,
                 },
             });
           })
@@ -85,14 +87,6 @@ function CenterContent() {
 
     return (
     <>
-        <ul className="nav border-bottom justify-content-center ">
-            <li className="nav-item menu-central">
-                <a className="nav-link active" href="#">Siguiendo</a>
-            </li>
-            <li className="nav-item menu-central">
-                <a className="nav-link" href="#">Para ti</a>
-            </li>
-        </ul>
         <div className='container-fluid'>
             <div className='row mt-4'>
                 <div className='col border rounded-3'>
@@ -158,6 +152,7 @@ function CenterContent() {
                 refreshKey={refreshKey} 
                 refrescarPublicaciones={refrescarPublicaciones} 
             />
+            
         <ToastContainer />
         </div>
     </>

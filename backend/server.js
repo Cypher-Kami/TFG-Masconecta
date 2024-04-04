@@ -12,6 +12,7 @@ const notificacionRouter = require('./routes/notificacion');
 const publicacionRouter = require('./routes/publicacion');
 const mensajesRouter = require('./routes/mensajes');
 const authRouter = require('./routes/auth');
+const servicioRouter = require('./routes/servicio');
 
 // Usar las rutas
 app.use('/usuario', usuarioRouter);
@@ -20,6 +21,7 @@ app.use('/auth', authRouter);
 app.use('/publicacion', publicacionRouter);
 app.use('/notificacion', notificacionRouter);
 app.use('/mensajes', mensajesRouter);
+app.use('/servicio', servicioRouter);
 
 app.use((err, req, res, next) => {
   console.error('Error en la aplicación:', err);

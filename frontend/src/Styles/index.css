@@ -154,8 +154,27 @@ input[type="color"]:focus,
     align-items: flex-end;
 }
 
+:root {
+    --background-color: #ffffff;
+    --text-color: #000000;
+    --primary-color: #9B41FE;
+    --secondary-color: #EDEFFE;
+}
+
+[data-theme='dark'] {
+    --background-color: #121212; 
+    --text-color: #EDEFFE; 
+    --primary-color: #BB86FC; 
+    --secondary-color: #333333;
+}
+
 .login-container {
     background-color: white;
+}
+
+.home-container {
+    background-color: white;
+    min-height: 100vh;
 }
 
 .inputs {

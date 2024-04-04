@@ -10,6 +10,7 @@ import MsgIcon from '../../Assets/iconos/Menu/Grupos.svg'
 import NotifIcon from '../../Assets/iconos/Menu/Notificacion.svg'
 import ProfIcon from '../../Assets/iconos/Menu/Perfil.svg'
 import EventIcon from '../../Assets/iconos/Menu/Eventos.svg'
+import MapIcon from '../../Assets/iconos/Menu/Mas opciones.svg'
 import CerrarSesionIcon from '../../Assets/iconos/Menu/Cerrar sesion.svg'
 
 function NavFeed() {
@@ -156,6 +157,12 @@ function NavFeed() {
         }
     };
 
+    const toggleTheme = () => {
+        const currentTheme = localStorage.getItem('theme') === 'dark' ? 'light' : 'dark';
+        localStorage.setItem('theme', currentTheme);
+        document.body.setAttribute('data-theme', currentTheme);
+    };
+
     const notificationsPopover = (
         <Popover id="notifications-popover" className="custom-popover">
             <Popover.Header>Notificaciones</Popover.Header>
@@ -274,6 +281,12 @@ function NavFeed() {
                 </a>
             </li>
             <li className="nav-item">
+                <a className="nav-link" href="#" onClick={() => handleComponent("Maps")}>
+                    <img src={MapIcon} width="16px" height="16px" className='mx-3' />
+                    Servicios
+                </a>
+            </li>
+            <li className="nav-item">
                 <a to="#" onClick={handleLogout} className="nav-link">
                     <img src={CerrarSesionIcon} alt="Cerrar sesión" width="16px" height="16px" className='mx-3' />
                     Cerrar sesión
@@ -282,8 +295,8 @@ function NavFeed() {
         </ul>
         <hr />
         <div className='d-flex justify-content-center'>
-            <button className="btn submit-bt p-2">
-                Modo oscuro
+            <button className="btn submit-bt p-2" onClick={toggleTheme}>
+                Cambiar tema
             </button>
         </div>
     </>
