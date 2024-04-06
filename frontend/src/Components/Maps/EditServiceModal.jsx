@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
 import axios from 'axios';
-import { useUserContext } from '../../Usercontext';
+import { ToastContainer, toast } from 'react-toastify';
 
-const EditServiceModal = ({ show, handleClose, initialData, handleSuccess }) => {
-    const { userState } = useUserContext();
+const EditServiceModal = ({ show, handleClose, initialData, handleSuccess, searchAddress }) => {
     const [formData, setFormData] = useState({
         nombre: '',
         descripcion: '',
@@ -16,12 +15,20 @@ const EditServiceModal = ({ show, handleClose, initialData, handleSuccess }) => 
         foto: null
     });
     const [selectedFile, setSelectedFile] = useState(null);
+    const [addressError, setAddressError] = useState('');
 
     useEffect(() => {
+        console.log(initialData);
         if (initialData) {
             setFormData({
-                ...initialData,
-                foto: null
+                nombre: initialData.Nombre || '',
+                descripcion: initialData.Descripcion || '',
+                telefono: initialData.Telefono || '',
+                email: initialData.Email || '',
+                ubicacion: initialData.Ubicacion || '',
+                lat: initialData.latitud?.toString() || '',
+                lon: initialData.longitud?.toString() || '',
+                foto: initialData.Foto || ''
             });
         }
     }, [initialData]);
@@ -29,6 +36,20 @@ const EditServiceModal = ({ show, handleClose, initialData, handleSuccess }) => 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
         setFormData({ ...formData, [name]: value });
+        if (name === "ubicacion") {
+            setAddressError('');
+            searchAddress(value).then(coords => {
+                if (coords) {
+                    setFormData(currentFormData => ({
+                        ...currentFormData,
+                        lat: coords.lat.toString(),
+                        lon: coords.lon.toString()
+                    }));
+                } else {
+                    setAddressError('Dirección no encontrada. Por favor, ingresa una dirección válida.');
+                }
+            }).catch(console.error);
+        }
     };
 
     const handleFileChange = (e) => {
@@ -37,24 +58,28 @@ const EditServiceModal = ({ show, handleClose, initialData, handleSuccess }) => 
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
-        const url = `http://localhost:3001/servicio/servicio/${initialData.id}`;
-        const updateData = new FormData();
-        
-        for (const key in formData) {
-            if (formData[key] !== null && key !== 'foto') {
-                updateData.append(key, formData[key]);
-            }
+
+        if (addressError) {
+            toast.error("Por favor, corrige la dirección antes de continuar.");
+            return;
         }
+        
+        const formDataToUpdate = new FormData();
+        Object.keys(formData).forEach(key => {
+            if (key !== 'foto') {
+                formDataToUpdate.append(key, formData[key]);
+            }
+        });
+    
         if (selectedFile) {
-            updateData.append('foto', selectedFile);
+            formDataToUpdate.append('foto', selectedFile);
         }
 
         try {
-            const response = await axios.put(url, updateData, {
+            const response = await axios.put(`http://localhost:3001/servicio/servicio/${initialData.ID}`, formDataToUpdate, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
-                }
+                },
             });
             handleSuccess(response.data);
             handleClose();
@@ -79,6 +104,16 @@ const EditServiceModal = ({ show, handleClose, initialData, handleSuccess }) => 
                             required
                             value={formData.nombre}
                             onChange={handleInputChange}
+                        />
+                    </Form.Group>
+
+                    {/* Foto del servicio */}
+                    <Form.Group className="mb-3">
+                        <Form.Label>Foto</Form.Label>
+                        <Form.Control
+                            type="file"
+                            name="foto"
+                            onChange={handleFileChange}
                         />
                     </Form.Group>
 
@@ -129,16 +164,7 @@ const EditServiceModal = ({ show, handleClose, initialData, handleSuccess }) => 
                             onChange={handleInputChange}
                         />
                     </Form.Group>
-
-                    {/* Foto del servicio */}
-                    <Form.Group className="mb-3">
-                        <Form.Label>Foto</Form.Label>
-                        <Form.Control
-                            type="file"
-                            name="foto"
-                            onChange={handleFileChange}
-                        />
-                    </Form.Group>
+                    {addressError && <div className="alert alert-danger" role="alert">{addressError}</div>}
 
                     <Button variant="primary" type="submit">
                         Actualizar

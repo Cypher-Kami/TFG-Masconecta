@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Modal, Form, Button } from 'react-bootstrap';
 import { useUserContext } from '../../Usercontext';
+import { ToastContainer, toast } from 'react-toastify';
 
 const AddServiceModal = ({ show, handleClose, handleSubmit, searchAddress }) => {
     const { userState } = useUserContext();
@@ -12,11 +13,14 @@ const AddServiceModal = ({ show, handleClose, handleSubmit, searchAddress }) => 
         ubicacion: '',
         foto: null
     });
+    const [addressError, setAddressError] = useState('');
 
-  // Manejar cambios en los inputs del formulario
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData({ ...formData, [name]: value });
+    if (name === "ubicacion") {
+      setAddressError('');
+    }
   };
 
   const handleFileChange = (e) => {
@@ -25,17 +29,23 @@ const AddServiceModal = ({ show, handleClose, handleSubmit, searchAddress }) => 
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    console.log(formData.ubicacion);
+    if (!formData.ubicacion) {
+      toast.error("Por favor, ingresa una dirección.");
+      return;
+    }
     if (formData.ubicacion) {
-        console.log("entre aqui");
         try {
           const coords = await searchAddress(formData.ubicacion);
-          console.log(coords);
+          if (!coords) {
+            setAddressError('Dirección no encontrada. Por favor, ingresa una dirección válida.');
+            toast.error('Dirección no encontrada. Por favor, ingresa una dirección válida.');
+            return;
+          }
           const dataWithCoords = { ...formData, ...coords, propietario: userState.id };
-          console.log(dataWithCoords);
           handleSubmit(dataWithCoords);
         } catch (error) {
           console.error("Error buscando la dirección:", error);
+          toast.error("Error buscando la dirección. Inténtalo de nuevo.");
         }
       } else {
         handleSubmit(formData);
@@ -113,7 +123,7 @@ const AddServiceModal = ({ show, handleClose, handleSubmit, searchAddress }) => 
               onChange={handleInputChange}
             />
           </Form.Group>
-
+          {addressError && <div className="alert alert-danger mt-2">{addressError}</div>}
           <Button variant="primary" type="submit">
             Agregar
           </Button>

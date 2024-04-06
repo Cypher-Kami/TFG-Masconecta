@@ -91,16 +91,25 @@ router.put('/servicio/:id', async (req, res) => {
       fotoUrl = uploadResult.secure_url;
   }
 
+  let query = 'UPDATE Servicio SET nombre=?, descripcion=?, telefono=?, email=?, ubicacion=?, latitud=?, longitud=?';
+  let queryParams = [nombre, descripcion, telefono, email, ubicacion, lat, lon];
+
+  if (fotoUrl) {
+    query += ', foto=?';
+    queryParams.push(fotoUrl);
+  }
+
+  query += ' WHERE ID = ?';
+  queryParams.push(id);
+
   try {
-      await new Promise((resolve, reject) => {
-          connection.query('UPDATE Servicio SET nombre=?, descripcion=?, foto=?, telefono=?, email=?, ubicacion=?, latitud=?, longitud=? WHERE ID = ?', 
-          [nombre, descripcion, fotoUrl, telefono, email, ubicacion, lat, lon, id], 
-          (error, results) => {
-              if (error) reject(error);
-              resolve(results);
-          });
-      });
-      res.status(200).json({ message: 'Servicio actualizado exitosamente.' });
+    await new Promise((resolve, reject) => {
+        connection.query(query, queryParams, (error, results) => {
+            if (error) reject(error);
+            resolve(results);
+        });
+    });
+    res.status(200).json({ message: 'Servicio actualizado exitosamente.' });
   } catch (error) {
       res.status(500).json({ error: 'Error al actualizar el servicio.' });
       console.error("Error en la actualización del servicio:", error);

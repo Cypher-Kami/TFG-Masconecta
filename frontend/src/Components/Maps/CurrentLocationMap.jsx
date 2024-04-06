@@ -5,6 +5,7 @@ import EditServiceModal from './EditServiceModal';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useUserContext } from '../../Usercontext';
+import { ToastContainer, toast } from 'react-toastify';
 
 delete L.Icon.Default.prototype._getIconUrl;
 
@@ -22,6 +23,7 @@ const CurrentLocationMap = () => {
     const [showModal, setShowModal] = useState(false);
     const [showEditModal, setShowEditModal] = useState(false);
     const [editingService, setEditingService] = useState(null);
+    const [markers, setMarkers] = useState([]);
 
     const handleAddServiceLocation = () => {
       setShowModal(true);
@@ -35,11 +37,11 @@ const CurrentLocationMap = () => {
             'Content-Type': 'multipart/form-data',
           },
         });
-        console.log(response.data);
+        toast.success('Servicio creado con exitosamente');
         setShowModal(false);
         loadAndShowServices();
       } catch (error) {
-        console.error('Error al crear el servicio:', error);
+        toast.error('Error al crear el servicio:', error);
       }
     };
 
@@ -58,18 +60,25 @@ const CurrentLocationMap = () => {
     };
 
     const loadAndShowServices = async () => {
+      markers.forEach(marker => mapRef.current.removeLayer(marker));
+      setMarkers([]);
+
       try {
-          const response = await axios.get('http://localhost:3001/servicio/servicios');
-          setUserServices(response.data);
-          response.data.forEach(servicio => {
-              if (servicio.latitud && servicio.longitud) {
-                  L.marker([servicio.latitud, servicio.longitud], { title: servicio.Nombre })
-                    .addTo(mapRef.current)
-                    .bindPopup(`${servicio.Nombre}: ${servicio.Descripcion}`);
-              }
-          });
+        const response = await axios.get('http://localhost:3001/servicio/servicios');
+        setUserServices(response.data);
+        const newMarkers = response.data.map(servicio => {
+          if (servicio.latitud && servicio.longitud) {
+            const marker = L.marker([servicio.latitud, servicio.longitud], { title: servicio.Nombre })
+                            .addTo(mapRef.current)
+                            .bindPopup(`${servicio.Nombre}: ${servicio.Descripcion}`);
+            return marker;
+          }
+          return null;
+        }).filter(marker => marker !== null);
+
+        setMarkers(newMarkers);
       } catch (error) {
-          console.error("Error loading services:", error);
+        console.error("Error loading services:", error);
       }
     };
 
@@ -97,26 +106,17 @@ const CurrentLocationMap = () => {
             await axios.delete(`http://localhost:3001/servicio/servicio/${selectedService}`);
             setUserServices(userServices.filter(service => service.ID !== parseInt(selectedService)));
             setSelectedService(null);
-            alert("Servicio eliminado exitosamente");
+            toast.error("Servicio eliminado exitosamente");
             loadAndShowServices();
         } catch (error) {
             console.error("Error al eliminar el servicio:", error);
         }
     }
 
-    const handleUpdateService = async (updatedServiceData) => {
-      try {
-          await axios.put(`http://localhost:3001/servicio/${selectedService}`, updatedServiceData, {
-              headers: {
-                  'Content-Type': 'multipart/form-data',
-              },
-          });
-          setShowEditModal(false);
-          loadAndShowServices();
-      } catch (error) {
-          console.error('Error al actualizar el servicio:', error);
-      }
-  };
+    const handleUpdateService = async () => {
+      toast.success("Servicio editado exitosamente");
+      loadAndShowServices();
+    };
   
     useEffect(() => {
       if (selectedService) {
@@ -126,35 +126,51 @@ const CurrentLocationMap = () => {
       }
     }, [selectedService, userServices]);
 
-    const handleEdit = () => {
+    const handleEdit = async () => {
       if (!selectedService) {
-        alert('Por favor, selecciona un servicio para editar.');
-        return;
+          alert('Por favor, selecciona un servicio para editar.');
+          return;
+      }
+      try {
+          const response = await axios.get(`http://localhost:3001/servicio/servicio/${selectedService}`);
+          setEditingService(response.data); 
+          setShowEditModal(true); 
+          console.log(response.data, "datos a editar");
+      } catch (error) {
+          console.error("Error al obtener los datos del servicio:", error);
       }
     };
-    
+  
     return (
       <>
         {userState.esEmpresa && (
-          <button className="btn btn-primary" onClick={handleAddServiceLocation}>
-            Agregar servicio
-          </button>
-        )}
-        {userServices.length > 0 && (
-          <div>
-              <select className="form-select"
+          <div className="d-flex mb-3">
+            <button
+              className="btn"
+              style={{ backgroundColor: "#9B41FE", color: "white" }}
+              onClick={handleAddServiceLocation}
+            >
+              Agregar servicio
+            </button>
+            {userServices.length > 0 && (
+              <div className="ms-auto">
+                <select
+                  className="form-select me-2"
+                  style={{ display: 'inline-block', width: 'auto' }}
                   value={selectedService}
                   onChange={(e) => setSelectedService(e.target.value)}
-              >
+                >
                   <option value="">Selecciona un servicio</option>
                   {userServices.map((service) => (
-                      <option key={service.ID} value={service.ID}>
-                          {service.Nombre}
-                      </option>
+                    <option key={service.ID} value={service.ID}>
+                      {service.Nombre}
+                    </option>
                   ))}
-              </select>
-              <button className='btn btn-light' onClick={handleEdit}>Editar</button>
-              <button className='btn btn-danger' onClick={handleDelete}>Eliminar</button>
+                </select>
+                <button className='btn btn-light me-2' onClick={handleEdit}>Editar</button>
+                <button className='btn btn-danger' onClick={handleDelete}>Eliminar</button>
+              </div>
+            )}
           </div>
         )}
         <div id="map" style={{ height: '600px', width: '100%' }}></div>
@@ -175,9 +191,9 @@ const CurrentLocationMap = () => {
               handleSuccess={handleUpdateService}
           />
         )}
+        <ToastContainer />
       </>
     );
-
 };
 
 export default CurrentLocationMap;
