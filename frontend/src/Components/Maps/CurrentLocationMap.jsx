@@ -34,6 +34,7 @@ const CurrentLocationMap = () => {
         });
         console.log(response.data);
         setShowModal(false);
+        loadAndShowServices();
       } catch (error) {
         console.error('Error al crear el servicio:', error);
       }
@@ -53,55 +54,54 @@ const CurrentLocationMap = () => {
       }
     };
 
+    const loadAndShowServices = async () => {
+      try {
+          const response = await axios.get('http://localhost:3001/servicio/servicios');
+          response.data.forEach(servicio => {
+              if (servicio.latitud && servicio.longitud) {
+                  L.marker([servicio.latitud, servicio.longitud], { title: servicio.Nombre })
+                    .addTo(mapRef.current)
+                    .bindPopup(`${servicio.Nombre}: ${servicio.Descripcion}`);
+              }
+          });
+      } catch (error) {
+          console.error("Error loading services:", error);
+      }
+    };
+
     useEffect(() => {
-        console.log(userState.esEmpresa);
-        console.log(userState, "Es empresa");
-        // Solo inicializa el mapa una vez
-        if (!mapRef.current) {
-          mapRef.current = L.map('map', { center: location, zoom: 13 });
-          L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
-          }).addTo(mapRef.current);
-  
-          L.marker(location).addTo(mapRef.current)
-            .bindPopup('Tu ubicación actual.')
-            .openPopup();
-        }
-  
-        // Actualiza la ubicación sólo si el mapa ya fue inicializado
-        if (navigator.geolocation && !initialLocationSet) {
-          navigator.geolocation.getCurrentPosition(
-            (position) => {
+      mapRef.current = L.map('map', { center: [40.4167, -3.70325], zoom: 13 });
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+          attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors',
+      }).addTo(mapRef.current);
+
+      loadAndShowServices();
+
+      if (navigator.geolocation) {
+          navigator.geolocation.getCurrentPosition(position => {
               const { latitude, longitude } = position.coords;
-              setLocation([latitude, longitude]);
-              setInitialLocationSet(true);
               mapRef.current.setView([latitude, longitude], 13);
-              L.marker([latitude, longitude]).addTo(mapRef.current)
-                .bindPopup('Tu ubicación actual.')
-                .openPopup();
-            },
-            () => {
-              setInitialLocationSet(true);
-            }
-          );
-        }
-      }, [initialLocationSet]);
+          }, () => {
+              console.log("Geolocation is not supported by this browser.");
+          });
+      }
+    }, []);
 
     return (
-        <>
-          {userState.esEmpresa && (
-            <button className="btn btn-primary" onClick={handleAddServiceLocation}>
-              Agregar Ubicación de Servicio
-            </button>
-          )}
-          <div id="map" style={{ height: '600px', width: '100%' }} />
-          <AddServiceModal
-            show={showModal}
-            handleClose={() => setShowModal(false)}
-            handleSubmit={handleSubmitService}
-            searchAddress={searchAddressAndAddMarker}
-          />
-        </>
+      <>
+        {userState.esEmpresa && (
+          <button className="btn btn-primary" onClick={handleAddServiceLocation}>
+            Agregar Ubicación de Servicio
+          </button>
+        )}
+        <div id="map" style={{ height: '600px', width: '100%' }}></div>
+        <AddServiceModal
+          show={showModal}
+          handleClose={() => setShowModal(false)}
+          handleSubmit={handleSubmitService}
+          searchAddress={searchAddressAndAddMarker}
+        />
+      </>
     );
 
 };
