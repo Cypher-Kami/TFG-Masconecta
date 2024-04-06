@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import axios from 'axios';
 import AddServiceModal from './AddServiceModal';
+import EditServiceModal from './EditServiceModal';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useUserContext } from '../../Usercontext';
@@ -16,9 +17,11 @@ L.Icon.Default.mergeOptions({
 const CurrentLocationMap = () => {
     const { userState } = useUserContext();
     const mapRef = useRef(null);
-    const [location, setLocation] = useState([40.4167, -3.70325]);
-    const [initialLocationSet, setInitialLocationSet] = useState(false);
+    const [userServices, setUserServices] = useState([]);
+    const [selectedService, setSelectedService] = useState(null);
     const [showModal, setShowModal] = useState(false);
+    const [showEditModal, setShowEditModal] = useState(false);
+    const [editingService, setEditingService] = useState(null);
 
     const handleAddServiceLocation = () => {
       setShowModal(true);
@@ -57,6 +60,7 @@ const CurrentLocationMap = () => {
     const loadAndShowServices = async () => {
       try {
           const response = await axios.get('http://localhost:3001/servicio/servicios');
+          setUserServices(response.data);
           response.data.forEach(servicio => {
               if (servicio.latitud && servicio.longitud) {
                   L.marker([servicio.latitud, servicio.longitud], { title: servicio.Nombre })
@@ -87,12 +91,71 @@ const CurrentLocationMap = () => {
       }
     }, []);
 
+    const handleDelete = async () => {
+        if (!selectedService) return;
+        try {
+            await axios.delete(`http://localhost:3001/servicio/servicio/${selectedService}`);
+            setUserServices(userServices.filter(service => service.ID !== parseInt(selectedService)));
+            setSelectedService(null);
+            alert("Servicio eliminado exitosamente");
+            loadAndShowServices();
+        } catch (error) {
+            console.error("Error al eliminar el servicio:", error);
+        }
+    }
+
+    const handleUpdateService = async (updatedServiceData) => {
+      try {
+          await axios.put(`http://localhost:3001/servicio/${selectedService}`, updatedServiceData, {
+              headers: {
+                  'Content-Type': 'multipart/form-data',
+              },
+          });
+          setShowEditModal(false);
+          loadAndShowServices();
+      } catch (error) {
+          console.error('Error al actualizar el servicio:', error);
+      }
+  };
+  
+    useEffect(() => {
+      if (selectedService) {
+          const serviceToEdit = userServices.find(service => service.ID === selectedService);
+          setEditingService(serviceToEdit);
+          setShowEditModal(true);
+      }
+    }, [selectedService, userServices]);
+
+    const handleEdit = () => {
+      if (!selectedService) {
+        alert('Por favor, selecciona un servicio para editar.');
+        return;
+      }
+    };
+    
     return (
       <>
         {userState.esEmpresa && (
           <button className="btn btn-primary" onClick={handleAddServiceLocation}>
-            Agregar Ubicación de Servicio
+            Agregar servicio
           </button>
+        )}
+        {userServices.length > 0 && (
+          <div>
+              <select className="form-select"
+                  value={selectedService}
+                  onChange={(e) => setSelectedService(e.target.value)}
+              >
+                  <option value="">Selecciona un servicio</option>
+                  {userServices.map((service) => (
+                      <option key={service.ID} value={service.ID}>
+                          {service.Nombre}
+                      </option>
+                  ))}
+              </select>
+              <button className='btn btn-light' onClick={handleEdit}>Editar</button>
+              <button className='btn btn-danger' onClick={handleDelete}>Eliminar</button>
+          </div>
         )}
         <div id="map" style={{ height: '600px', width: '100%' }}></div>
         <AddServiceModal
@@ -101,6 +164,17 @@ const CurrentLocationMap = () => {
           handleSubmit={handleSubmitService}
           searchAddress={searchAddressAndAddMarker}
         />
+        {editingService && (
+          <EditServiceModal
+              show={showEditModal}
+              handleClose={() => {
+                  setShowEditModal(false);
+                  setSelectedService(null);
+              }}
+              initialData={editingService}
+              handleSuccess={handleUpdateService}
+          />
+        )}
       </>
     );
 

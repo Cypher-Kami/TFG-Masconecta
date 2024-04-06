@@ -58,7 +58,54 @@ router.get('/servicios', async (req, res) => {
       res.status(500).json({ error: 'Error al obtener los servicios.' });
     }
 });
+
+router.get('/servicio/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+      const servicio = await new Promise((resolve, reject) => {
+          connection.query('SELECT * FROM Servicio WHERE ID = ?', [id], (error, results) => {
+              if (error) reject(error);
+              resolve(results[0]);
+          });
+      });
+      if (servicio) {
+          res.status(200).json(servicio);
+      } else {
+          res.status(404).json({ message: 'Servicio no encontrado.' });
+      }
+  } catch (error) {
+      res.status(500).json({ error: 'Error al obtener el servicio.' });
+  }
+});
   
+router.put('/servicio/:id', async (req, res) => {
+  const { id } = req.params;
+  const { nombre, descripcion, telefono, email, ubicacion, lat, lon } = req.body;
+  let fotoUrl = req.body.foto;
+
+  if (req.files && req.files.foto) {
+      const foto = req.files.foto;
+      const b64 = Buffer.from(foto.data).toString("base64");
+      let dataURI = "data:" + foto.mimetype + ";base64," + b64;
+      const uploadResult = await handleUpload(dataURI);
+      fotoUrl = uploadResult.secure_url;
+  }
+
+  try {
+      await new Promise((resolve, reject) => {
+          connection.query('UPDATE Servicio SET nombre=?, descripcion=?, foto=?, telefono=?, email=?, ubicacion=?, latitud=?, longitud=? WHERE ID = ?', 
+          [nombre, descripcion, fotoUrl, telefono, email, ubicacion, lat, lon, id], 
+          (error, results) => {
+              if (error) reject(error);
+              resolve(results);
+          });
+      });
+      res.status(200).json({ message: 'Servicio actualizado exitosamente.' });
+  } catch (error) {
+      res.status(500).json({ error: 'Error al actualizar el servicio.' });
+      console.error("Error en la actualización del servicio:", error);
+  }
+});
 
 router.delete('/servicio/:id', async (req, res) => {
     const { id } = req.params;
