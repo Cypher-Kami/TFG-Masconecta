@@ -36,7 +36,6 @@ function CenterContent() {
         axios.get(`http://localhost:3001/usuario/${id}`)
           .then(response => {
             const userData = response.data;
-            console.log("UserData after fetching", response.data);
             setValues({
                 ...values,
                 Mote: userData.Mote,

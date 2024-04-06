@@ -65,7 +65,8 @@ const CurrentLocationMap = () => {
 
       try {
         const response = await axios.get('http://localhost:3001/servicio/servicios');
-        setUserServices(response.data);
+        const myServices = response.data.filter(servicio => servicio.Propietario === userState.id);
+        setUserServices(myServices);
         const newMarkers = response.data.map(servicio => {
           if (servicio.latitud && servicio.longitud) {
             const marker = L.marker([servicio.latitud, servicio.longitud], { title: servicio.Nombre })
@@ -95,7 +96,7 @@ const CurrentLocationMap = () => {
               const { latitude, longitude } = position.coords;
               mapRef.current.setView([latitude, longitude], 13);
           }, () => {
-              console.log("Geolocation is not supported by this browser.");
+              console.error("Geolocation is not supported by this browser.");
           });
       }
     }, []);
@@ -114,8 +115,8 @@ const CurrentLocationMap = () => {
     }
 
     const handleUpdateService = async () => {
-      toast.success("Servicio editado exitosamente");
       loadAndShowServices();
+      toast.success("Servicio editado exitosamente");
     };
   
     useEffect(() => {
@@ -135,7 +136,6 @@ const CurrentLocationMap = () => {
           const response = await axios.get(`http://localhost:3001/servicio/servicio/${selectedService}`);
           setEditingService(response.data); 
           setShowEditModal(true); 
-          console.log(response.data, "datos a editar");
       } catch (error) {
           console.error("Error al obtener los datos del servicio:", error);
       }
@@ -189,6 +189,7 @@ const CurrentLocationMap = () => {
               }}
               initialData={editingService}
               handleSuccess={handleUpdateService}
+              searchAddress={searchAddressAndAddMarker}
           />
         )}
         <ToastContainer />

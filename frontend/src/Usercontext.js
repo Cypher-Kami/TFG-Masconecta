@@ -15,7 +15,6 @@ export const UserProvider = ({ children, initialUserID }) => {
   };
 
   const userReducer = (state, action) => {
-    console.log("Action received in userReducer", action);
     switch (action.type) {
       case 'SET_USER':
         return {

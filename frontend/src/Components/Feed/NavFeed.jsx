@@ -27,7 +27,6 @@ function NavFeed() {
     const fetchNotificationsAndFriendRequests = async () => {
         try {
             const friendResponse = await axios.get(`http://localhost:3001/usuario/friend-request/${id}`);
-            console.log(friendResponse.data);
             setSolicitudesAmistad(Array.isArray(friendResponse.data) ? friendResponse.data : []);
 
             const notifResponse = await axios.get(`http://localhost:3001/notificacion/notificaciones/${id}`);
@@ -80,7 +79,6 @@ function NavFeed() {
         try {
             const response = await axios.put('http://localhost:3001/notificacion/marcar-notificaciones', { usuarioID: id });
             if (response.status === 200) {
-                console.log(response.data.message);
                 toast.success("Notificaciones marcadas como leídas");
                 setNotificaciones(notificaciones.map(n => ({ ...n, Leida: true })));
                 setSolicitudesNoLeidas(0);
@@ -94,7 +92,6 @@ function NavFeed() {
         try {
             const { data } = await axios.get(`http://localhost:3001/mensajes/no-leidos/${userState.id}`);
             setMensajesNoLeidos(data.noLeidos);
-            console.log(data.noLeidos);
         } catch (error) {
             console.error("Error al cargar mensajes no leídos:", error);
         }

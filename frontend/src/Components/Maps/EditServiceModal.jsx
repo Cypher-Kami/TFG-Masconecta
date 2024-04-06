@@ -18,7 +18,6 @@ const EditServiceModal = ({ show, handleClose, initialData, handleSuccess, searc
     const [addressError, setAddressError] = useState('');
 
     useEffect(() => {
-        console.log(initialData);
         if (initialData) {
             setFormData({
                 nombre: initialData.Nombre || '',
@@ -35,21 +34,10 @@ const EditServiceModal = ({ show, handleClose, initialData, handleSuccess, searc
 
     const handleInputChange = (e) => {
         const { name, value } = e.target;
-        setFormData({ ...formData, [name]: value });
-        if (name === "ubicacion") {
-            setAddressError('');
-            searchAddress(value).then(coords => {
-                if (coords) {
-                    setFormData(currentFormData => ({
-                        ...currentFormData,
-                        lat: coords.lat.toString(),
-                        lon: coords.lon.toString()
-                    }));
-                } else {
-                    setAddressError('Dirección no encontrada. Por favor, ingresa una dirección válida.');
-                }
-            }).catch(console.error);
-        }
+        setFormData(currentFormData => ({
+            ...currentFormData,
+            [name]: value
+        }));
     };
 
     const handleFileChange = (e) => {
@@ -58,33 +46,39 @@ const EditServiceModal = ({ show, handleClose, initialData, handleSuccess, searc
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
-        if (addressError) {
-            toast.error("Por favor, corrige la dirección antes de continuar.");
-            return;
-        }
-        
-        const formDataToUpdate = new FormData();
-        Object.keys(formData).forEach(key => {
-            if (key !== 'foto') {
-                formDataToUpdate.append(key, formData[key]);
+        if (formData.ubicacion) {
+            const coords = await searchAddress(formData.ubicacion);
+            if (!coords) {
+                setAddressError('Dirección no encontrada. Por favor, ingresa una dirección válida.');
+                toast.error('Dirección no encontrada. Por favor, ingresa una dirección válida.');
+                return;
             }
-        });
-    
-        if (selectedFile) {
-            formDataToUpdate.append('foto', selectedFile);
-        }
-
-        try {
-            const response = await axios.put(`http://localhost:3001/servicio/servicio/${initialData.ID}`, formDataToUpdate, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
+            const dataWithCoords = { ...formData, ...coords };
+            const formDataToUpdate = new FormData();
+            Object.keys(dataWithCoords).forEach(key => {
+                if (key !== 'foto') {
+                    formDataToUpdate.append(key, dataWithCoords[key]);
+                }
             });
-            handleSuccess(response.data);
-            handleClose();
-        } catch (error) {
-            console.error('Error al actualizar el servicio:', error);
+            if (selectedFile) {
+                formDataToUpdate.append('foto', selectedFile);
+            }
+
+            try {
+                const response = await axios.put(`http://localhost:3001/servicio/servicio/${initialData.ID}`, formDataToUpdate, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                    },
+                });
+                handleSuccess(response.data);
+                handleClose();
+            } catch (error) {
+                console.error('Error al actualizar el servicio:', error);
+                toast.error("Error actualizando el servicio. Inténtalo de nuevo.");
+            }
+        } else {
+            setAddressError('Por favor, proporciona una ubicación válida.');
+            toast.error('Por favor, proporciona una ubicación válida.');
         }
     };
 
