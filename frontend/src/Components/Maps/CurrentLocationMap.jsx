@@ -143,7 +143,7 @@ const CurrentLocationMap = () => {
   
     return (
       <>
-        {userState.esEmpresa && (
+        {userState.esEmpresa === 1 && (
           <div className="d-flex mb-3">
             <button
               className="btn"

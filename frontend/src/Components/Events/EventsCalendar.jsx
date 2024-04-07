@@ -20,7 +20,6 @@ function EventsCalendar() {
             try {
                 const userID = userState.id;
                 const response = await axios.get(`http://localhost:3001/evento/events?propietario=${userID}`);
-                console.log('Respuesta del servidor:', response.data);
                 const fetchedEvents = response.data.map(event => ({
                     ...event,
                     ID: event.ID,
@@ -31,7 +30,6 @@ function EventsCalendar() {
                     Description: event.Descripcion,
                 }));
                 setEvents(fetchedEvents);
-                console.log('Eventos cargados:', fetchedEvents);
             } catch (error) {
                 console.error('Error al cargar eventos:', error);
                 toast.error('Error al cargar eventos');
@@ -46,7 +44,6 @@ function EventsCalendar() {
     };
 
     const handleEditEvent = (event) => {
-        console.log('Evento seleccionado:', event);
         setSelectedEvent(event);
         setIsModalOpen(true);
     };
@@ -61,11 +58,9 @@ function EventsCalendar() {
     };
 
     const handleFormSubmit = async (formData, eventId) => {
-        console.log('Datos del formulario a enviar:', formData);
         const id = selectedEvent?.ID || eventId;
         const url = id ? `http://localhost:3001/evento/events/${id}` : 'http://localhost:3001/evento/event';
         const method = id ? 'put' : 'post';
-    
         const dataToSend = {
             title: formData.title,
             Descripcion: formData.Descripcion,
@@ -77,23 +72,18 @@ function EventsCalendar() {
     
         try {
             const response = await axios[method](url, dataToSend);
-            console.log('Respuesta del servidor al enviar el formulario:', response);
 
             if (method === 'put') {
-                // Actualiza el evento en el estado
                 setEvents(events.map(event => event.ID === eventId ? {...event, ...formData} : event));
-                console.log('Estado actualizado de eventos:', events);
                 toast.success('Evento actualizado exitosamente');
             } else {
-                // Agrega el nuevo evento al estado
                 const newEvent = { 
                     ...response.data, 
                     start: new Date(dataToSend.Fecha_Inicio), 
                     end: new Date(dataToSend.Fecha_Fin),
-                    title: dataToSend.Nombre
+                    title: dataToSend.title
                 };                
                 setEvents([...events, newEvent]);
-                console.log('Estado actualizado de eventos:', events);
                 toast.success('Evento creado exitosamente');
             }
         } catch (error) {
@@ -105,7 +95,6 @@ function EventsCalendar() {
     };
 
     const handleDeleteEvent = async (eventId) => {
-        console.log('Eliminando evento con ID:', eventId);
         if (window.confirm('¿Estás seguro de que deseas borrar este evento?')) {
             try {
                 await axios.delete(`http://localhost:3001/evento/events/${eventId}`);
@@ -117,7 +106,6 @@ function EventsCalendar() {
             }
         }
     };
-    console.log('Eventos a renderizar en el calendario:', events);
 
     return (
         <>

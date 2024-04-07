@@ -291,11 +291,6 @@ function NavFeed() {
             </li>
         </ul>
         <hr />
-        <div className='d-flex justify-content-center'>
-            <button className="btn submit-bt p-2" onClick={toggleTheme}>
-                Cambiar tema
-            </button>
-        </div>
     </>
   );
 }

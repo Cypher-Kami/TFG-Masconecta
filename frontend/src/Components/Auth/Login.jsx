@@ -29,19 +29,10 @@ function Login() {
   const handleSubmit = async (values) => {
     try {
       const response = await axios.post('http://localhost:3001/auth/login', values);
-      console.log("Login Response", response.data);
       if (response.status === 200) {
         toast.success('Inicio de sesión exitoso');
         const token = response.data.token;
         localStorage.clear();
-        console.log("Dispatching after login", {
-          id: response.data.userID,
-          mote: values.Mote,
-          foto: values.Foto,
-          email: values.Email,
-          esEmpresa: response.data.esEmpresa,
-        });
-        
         dispatch({
           type: 'SET_USER',
           payload: {
@@ -62,7 +53,7 @@ function Login() {
         toast.error('No se pudo iniciar sesión');
       }
     } catch (error) {
-      console.log("Error: ", error.response.data.error);
+      console.error("Error: ", error.response.data.error);
       toast.error(error.response.data.error);
     }
   };

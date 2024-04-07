@@ -118,14 +118,6 @@ function CenterContent() {
                                     <img src={ImagenIcon} width="16px" height="16px" className='mx-1' />
                                     Foto
                                 </label>
-                                <button type="button" className='btn btn-light mx-2'>
-                                    <img src={VideoIcon} width="16px" height="16px" className='mx-1' />
-                                    Video
-                                </button>
-                                <button type="button" className='btn btn-light'>
-                                    <img src={EventoIcon} width="16px" height="16px" className='mx-1' />
-                                    Evento
-                                </button>
                             </div>
                             <div className='col-3 d-flex justify-content-end position-relative'>
                                 <button type="button" className='btn btn-light btn-circle mb-4 mx-2' onClick={() => setShowEmojiPicker(!showEmojiPicker)}>

@@ -11,7 +11,7 @@ function EventFormModal({ show, onHide, onSubmit, onDelete, event }) {
 
     useEffect(() => {
         if (event) {
-            setTitle(event.Nombre || '');
+            setTitle(event.title || '');
             setDescription(event.Descripcion || '');
             setLocation(event.Ubicacion || '');
             setStart(event.start ? moment(event.start).format('YYYY-MM-DDTHH:mm') : '');
@@ -22,7 +22,6 @@ function EventFormModal({ show, onHide, onSubmit, onDelete, event }) {
     }, [event]);
 
     const resetForm = () => {
-        console.log('Restableciendo formulario');
         setTitle('');
         setDescription('');
         setLocation('');
@@ -104,7 +103,9 @@ function EventFormModal({ show, onHide, onSubmit, onDelete, event }) {
                             required
                         />
                     </Form.Group>
-                    <Button className="mt-2 p-0 mx-2 submit-bt" type="submit">
+                    <Button className="mt-2 mx-2 btn" 
+                        style={{ backgroundColor: "#9B41FE", color: "white" }}
+                        type="submit">
                         {event ? "Actualizar Evento" : "Crear Evento"}
                     </Button>
                     {event && (
