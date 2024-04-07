@@ -102,16 +102,19 @@ const CurrentLocationMap = () => {
     }, []);
 
     const handleDelete = async () => {
-        if (!selectedService) return;
-        try {
-            await axios.delete(`http://localhost:3001/servicio/servicio/${selectedService}`);
-            setUserServices(userServices.filter(service => service.ID !== parseInt(selectedService)));
-            setSelectedService(null);
-            toast.error("Servicio eliminado exitosamente");
-            loadAndShowServices();
-        } catch (error) {
-            console.error("Error al eliminar el servicio:", error);
-        }
+      if (!selectedService) {
+        toast.error('Por favor, selecciona un servicio para eliminar.');
+        return;
+      }
+      try {
+          await axios.delete(`http://localhost:3001/servicio/servicio/${selectedService}`);
+          setUserServices(userServices.filter(service => service.ID !== parseInt(selectedService)));
+          setSelectedService(null);
+          toast.error("Servicio eliminado exitosamente");
+          loadAndShowServices();
+      } catch (error) {
+          console.error("Error al eliminar el servicio:", error);
+      }
     }
 
     const handleUpdateService = async () => {
@@ -129,7 +132,7 @@ const CurrentLocationMap = () => {
 
     const handleEdit = async () => {
       if (!selectedService) {
-          alert('Por favor, selecciona un servicio para editar.');
+          toast.error('Por favor, selecciona un servicio para editar.');
           return;
       }
       try {
