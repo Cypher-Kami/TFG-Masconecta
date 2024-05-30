@@ -11,46 +11,68 @@ Red social para amantes de las mascotas
 - [Instalación](#instalación)
 - [Uso](#uso)
 - [Tecnologías Utilizadas](#tecnologías-utilizadas)
-- [Contribución](#contribución)
-- [Licencia](#licencia)
-- [Contacto](#contacto)
 
 ## Descripción
 
-Red social para mascotas
+Masconecta es una red social enfocada en unir a amantes de las mascotas mediante una aplicación web, facilitando la interacción y el acercamiento entre usuarios con intereses similares.
 
 ## Características
 
-Enumera las características clave de tu proyecto. Pueden ser funcionalidades específicas, módulos importantes, etc.
+- Creación de cuentas de diferentes tipos enfocada en las necesidades de sus usuarios.
+- Buscador para agregar amigos y facilitar el contacto.
+- Chat en tiempo real para conversar entre usuarios.
+- Publicación de fotos y/o contenido, comentando las publicaciones de los amigos.
+- Creación de eventos.
+- Buscador de servicios en el mapa para usuarios de tipo empresa.
 
 ## Capturas de Pantalla
 
-Incluye capturas de pantalla o gifs que muestren cómo se ve y funciona tu proyecto. Esto ayuda a los usuarios a tener una idea rápida de lo que pueden esperar.
 
 ## Requisitos del Sistema
 
-Enumera los requisitos mínimos del sistema para ejecutar tu proyecto. Esto podría incluir versiones de navegador, software necesario, etc.
+- Node.js
+- Docker
+- Navegadores modernos (Chrome, Firefox, Edge)
 
 ## Instalación
 
-Proporciona instrucciones detalladas sobre cómo instalar tu proyecto. Esto podría incluir pasos para clonar el repositorio, configuración, dependencias, etc.
+- Clona el repositorio:
+```
+git clone https://github.com/Cypher-Kami/TFG-Masconecta.git
+```
+
+- Navega al directorio del proyecto:
+```
+cd masconecta
+```
+
+- cd frontend
+```
+npm install
+```
+- cd ../backend
+```
+npm install
+```
+- Configura y levanta los contenedores de Docker:
+```
+docker-compose up
+```
 
 ## Uso
 
-Explica cómo utilizar tu proyecto. Proporciona ejemplos, comandos o explicaciones paso a paso según sea necesario.
+- Inicia la aplicación desde el directorio del backend:
+```
+npm start
+```
+
+- Abrir el navegador y dirigirse a http://localhost:3000.
 
 ## Tecnologías Utilizadas
-
-Enumera las tecnologías principales que has utilizado en tu proyecto. Esto podría incluir lenguajes de programación, bibliotecas, marcos, bases de datos, etc.
-
-## Contribución
-
-Explica cómo otros pueden contribuir a tu proyecto. Esto podría incluir instrucciones para bifurcar el repositorio, crear solicitudes de extracción y pautas de estilo de código.
-
-## Licencia
-
-Indica la licencia bajo la cual se distribuye tu proyecto. Puedes usar una insignia para mostrar la licencia.
-
-## Contacto
-
-Proporciona información para que las personas te contacten en caso de preguntas, problemas o colaboraciones. Puede ser una dirección de correo electrónico, enlace a tu perfil de redes sociales, etc.
+- HTML
+- CSS
+- Bootstrap
+- React
+- Express
+- MySQL
+- Docker
