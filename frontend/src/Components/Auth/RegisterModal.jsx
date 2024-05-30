@@ -33,6 +33,9 @@ const popover = (
 
 function RegisterModal({ showModal, handleClose }) {
   const [popoverVisible, setPopoverVisible] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState(1);
+  const totalSteps = 2;
 
   const handleSubmit = async (values) => {
     const formData = new FormData();
@@ -60,17 +63,14 @@ function RegisterModal({ showModal, handleClose }) {
     Mote: Yup.string().required('Campo requerido'),
     Email: Yup.string().email('Correo electrónico inválido').required('Campo requerido'),
     Contrasena: Yup.string().required('Campo requerido').min(8, "La contraseña debe tener mínimo 8 carácteres"),
-    //Foto: Yup.mixed().required('Campo requerido'),
+    Foto: Yup.mixed().required('Campo requerido'),
     Gustos: Yup.array().required('Campo requerido'),
     Terminos: Yup.boolean().oneOf([true], 'Debes aceptar los términos y condiciones').required('Campo requerido'),
+    tipoCuenta: Yup.string().required('Campo requerido'),
   });
 
-  const [showPassword, setShowPassword] = useState(false);
-  const [step, setStep] = useState(1);
-  const totalSteps = 2;
-
   const handleNextStep = () => {
-    if (step < 2) {
+    if (step < totalSteps) {
       setStep(step + 1);
     }
   };
@@ -101,10 +101,10 @@ function RegisterModal({ showModal, handleClose }) {
               Foto: null,
               Gustos: [],
               Terminos: false,
-              tipoCuenta: "Usuario",
+              tipoCuenta: "",
             }}
             validationSchema={validationSchema}
-            onSubmit={(handleSubmit)}
+            onSubmit={handleSubmit}
           >
             {({ values, setFieldValue }) => (
               <Form>
@@ -117,12 +117,13 @@ function RegisterModal({ showModal, handleClose }) {
                     <>
                       <div className="form-group mt-3">
                         <Select
-                          defaultValue={options.filter((option) => option.value === values.tipoCuenta)}
+                          defaultValue={optionsUsuario.find(option => option.value === values.tipoCuenta)}
                           options={optionsUsuario}
                           onChange={(selectedOption) => setFieldValue("tipoCuenta", selectedOption.value)}
                           placeholder="Tipo de cuenta"
                           name="tipoCuenta"
                         />
+                        <ErrorMessage name="tipoCuenta" component="div" className="error-message" />
                       </div>
                       <div className="form-group mt-3">
                         <Field

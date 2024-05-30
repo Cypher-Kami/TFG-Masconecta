@@ -49,7 +49,6 @@ router.post('/register', async (req, res) => {
   const { Mote, Contrasena, Email, Gustos, tipoCuenta } = req.body;
   const Foto = req.files && req.files.Foto;
   try {
-    // Verificar si el usuario ya existe en la base de datos
     const usuarioExistente = await new Promise((resolve, reject) => {
       connection.query(
         'SELECT * FROM Usuario WHERE Mote = ? OR Email = ?',
